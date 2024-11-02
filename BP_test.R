@@ -20,10 +20,7 @@ vcf_data <- data.frame(
   stringsAsFactors = FALSE
 )
 
-head(vcf_data)
-
 chr1 <- subset(vcf_data, Chromosome == "chr1")
-head(chr1)
 
 ggplot(chr1, aes(x = Position)) + geom_density(fill = "skyblue") + 
   labs(title = "Density plot of variants on chr1", x = "Position", 
