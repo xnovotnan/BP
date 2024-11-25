@@ -14,6 +14,7 @@ mcols(vcf_mini)$alt <- rowRanges(vcf_mini)$ALT %>% CharacterList(.) %>% unstrspl
 vcf_file <- "/Users/macbook/Documents/BP/data/Lynch.2526.01.N_new.vcf"
 vcf <- readVcf(vcf_file, "t2t")
 mcols(vcf)$alt <- rowRanges(vcf)$ALT %>% CharacterList(.) %>% unstrsplit(., sep = ",")
+rowRanges(vcf_mini)
 
 
 #klasifikacia types
@@ -62,6 +63,7 @@ get_distribution <- function(vcf_data, chromosome="all", subtypes=FALSE){
 get_distribution(vcf, chromosome="chr1")
 get_distribution(vcf, subtypes=TRUE)
 
+#alelicka frekvencia 
 get_frequency <- function(vcf_data){
   ad <- geno(vcf_data)$AD
   dp <- geno(vcf_data)$DP
@@ -75,8 +77,10 @@ get_frequency <- function(vcf_data){
     geom_col(aes(x = Mutation, y = alt_AF), fill = "skyblue") +
     labs(title = "Allele Frequency",
          x = "Mutation",
-         y = "Frequency") 
+         y = "Frequency") + theme_minimal()
 }
 
 get_frequency(vcf_mini)
+
+
 
