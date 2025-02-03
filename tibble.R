@@ -318,19 +318,16 @@ lollipop_subtypes(vcf_complete)
 
 # Distribúcia SNP typov
 SNV_types <- function(vcf_tibble){
-  #urobit cez groupby (skupina = paste niekde v chate to je na nejaky graf urobene tak)
   vcf_tibble %<>% filter(TYPE == "SNP") %>%  
-    mutate(SNP_TYPE = map2_chr(REF, ALT, ~{
-      paste(.x, ">", .y)
-    }))
+    count(SNP_TYPE = paste(REF, ALT, sep = ">"))
   
-  p <- ggplot(vcf_tibble, aes(x = SNP_TYPE, fill = SNP_TYPE)) +
-    geom_bar(color = "black") + 
-    labs(title = "Distribution of SNP Types",
-         x = "SNP Type",
-         y = "Frequency") +
+  p <- ggplot(mutation_data, aes(x = reorder(SNP_TYPE, -n), y = n, fill = SNP_TYPE)) +
+    geom_bar(stat = "identity", color = "black") +
     theme_minimal() +
+    labs(title = "SNP Mutations Distribution", y=NULL, x=NULL) +
+    theme(legend.position = "none")+
     coord_flip()
+  
   ggplotly(p)
 }
 
