@@ -2,12 +2,13 @@ library(VariantAnnotation)
 library(BiocManager)
 library(tidyverse)
 library(magrittr)
-library(waffle)
 library(patchwork)
 library(ggridges)
 library(viridis)
 library(hrbrthemes)
 library(plotly)
+library(circlize)
+library(ComplexHeatmap)
 
 setwd("/Users/macbook/Documents/BP")
 vcf_file <- "/Users/macbook/Documents/BP/data/Lynch.2526.01.N.vcf"
@@ -25,9 +26,9 @@ options(scipen = 999)
 # -----------------------------------
 # vytvorenie tibble, vymazanie hlavicky a mutacii s qual < 200 a s GT 0/0, 
 # klasifikovanie typu a subtypu, vypocet alelickej frekvencie
-prepare_data <- function(vcf_path){
-  header_line <- grep("^#CHROM", readLines(vcf_file)) 
-  vcf_tibble <- read_delim(vcf_file, delim = "\t", skip = header_line - 1)
+prepare_data <- function(vcf_file){
+  header_line <- grep("^#CHROM", suppressMessages(readLines(vcf_file))) 
+  vcf_tibble <- suppressMessages(read_delim(vcf_file, delim = "\t", skip = header_line - 1))
   vcf_tibble %<>% 
     rename("VALUES" = last(colnames(.)), "CHROM" = first(colnames(.))) %>%
     mutate(
@@ -49,6 +50,7 @@ prepare_data <- function(vcf_path){
   )
   
   vcf_tibble$CHROM <- factor(vcf_tibble$CHROM, levels = c(paste0("chr", 1:22), "chrX", "chrY", "chrM"))
+  vcf_tibble %<>% select(c("CHROM", "POS", "REF", "ALT", "TYPE", "SUBTYPE", "QUAL", "GT", "AD", "DP", "AF"))
   vcf_tibble
 }
 
@@ -321,7 +323,7 @@ SNV_types <- function(vcf_tibble){
   vcf_tibble %<>% filter(TYPE == "SNP") %>%  
     count(SNP_TYPE = paste(REF, ALT, sep = ">"))
   
-  p <- ggplot(mutation_data, aes(x = reorder(SNP_TYPE, -n), y = n, fill = SNP_TYPE)) +
+  p <- ggplot(vcf_tibble, aes(x = reorder(SNP_TYPE, -n), y = n, fill = SNP_TYPE)) +
     geom_bar(stat = "identity", color = "black") +
     theme_minimal() +
     labs(title = "SNP Mutations Distribution", y=NULL, x=NULL) +
@@ -355,4 +357,40 @@ mutation_heatmap <- function(vcf_tibble){
 mutation_heatmap(vcf_complete)
 
 
+# -----------------------------------
+# CIRCOS GRAFY
+# -----------------------------------
 
+
+#scattrrplot AF
+circos.clear()
+circos.par(cell.padding = c(0.02, 0, 0.02, 0))
+
+circos.initialize(vcf_complete$CHROM, vcf_complete$POS)
+circos.track(ylim = c(0, 1))
+circos.trackPoints(vcf_complete$CHROM, vcf_complete$POS, vcf_complete$AF)
+
+
+
+# heatmap AF
+col_fun1 = colorRamp2(c(0, 0.5, 1), c("blue", "white", "red"))
+circos.clear()
+circos.heatmap(vcf_complete$AF, split= vcf_complete$CHROM, col = col_fun1)
+
+
+
+
+
+
+
+runExample("01_hello")      # a histogram
+runExample("02_text")       # tables and data frames
+runExample("03_reactivity") # a reactive expression
+runExample("04_mpg", display.mode = "showcase")        # global variables
+runExample("05_sliders")    # slider bars
+runExample("06_tabsets")    # tabbed panels
+runExample("07_widgets")    # help text and submit buttons
+runExample("10_download")   # file download wizard
+
+
+summary(vcf_complete)
