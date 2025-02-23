@@ -1,5 +1,3 @@
-library(VariantAnnotation)
-library(BiocManager)
 library(tidyverse)
 library(magrittr)
 library(patchwork)
@@ -69,7 +67,7 @@ plot_QUAL <- function(vcf_tibble) {
          x = "Position", 
          y="Quality") +
     theme_minimal()
-  ggplotly(p)
+  p
 }
 plot_QUAL(vcf_complete)
 
@@ -378,19 +376,3 @@ circos.clear()
 circos.heatmap(vcf_complete$AF, split= vcf_complete$CHROM, col = col_fun1)
 
 
-
-
-
-
-
-runExample("01_hello")      # a histogram
-runExample("02_text")       # tables and data frames
-runExample("03_reactivity") # a reactive expression
-runExample("04_mpg", display.mode = "showcase")        # global variables
-runExample("05_sliders")    # slider bars
-runExample("06_tabsets")    # tabbed panels
-runExample("07_widgets")    # help text and submit buttons
-runExample("10_download")   # file download wizard
-
-
-summary(vcf_complete)
