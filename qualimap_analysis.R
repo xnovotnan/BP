@@ -23,7 +23,7 @@ get_genome_results <- function(qualimap_folder){
   if (!file.exists(file_path)) {
     stop("File genome_results.txt does not found in this folder.")
   }
-  lines <- readLines(file_path)
+  readLines(file_path)
 }
 
 # Funkcia process_qualimap() sluzi na spracovanie qualimap suboru - vyberie
@@ -41,9 +41,6 @@ process_qualimap <- function(qualimap_folder) {
     parts <- strsplit(line, "=")[[1]]
     key <- trimws(parts[1])
     value <- trimws(parts[2])
-    # value <- sub("([0-9,]+).*", "\\1", value)
-    # value <- gsub(",", "", value) %>%
-    #   as.numeric()
     results[[key]] <- value
   }
   results
@@ -76,7 +73,6 @@ process_qualimap_coverage <- function(qualimap_folder){
   p
 }
 
-
 # Funkcia process_qualimap_coverage_pc sluzi na spracovanie coverage per contig dat
 process_qualimap_coverage_pc <- function(qualimap_folder) {
   lines <- get_genome_results(qualimap_folder)
@@ -103,7 +99,7 @@ extract_value <- function(value) {
   return(value)
 }
 
-# Funkcia 
+# Funkcia process_ACTG_content spracuje ACTG content do grafu 
 process_ACTG_content <- function(data){
   data <- data[c("number of A's", "number of C's", "number of T's", "number of G's", "number of N's")]
   values <- sapply(data, extract_value)
@@ -111,12 +107,58 @@ process_ACTG_content <- function(data){
   df <- data.frame(Base = labels, Count = values)
   df$Percentage <- df$Count / sum(df$Count) * 100
   
-  p1 <- ggplot(df, aes(x = Base, y = Count)) +
-    geom_bar(stat = "identity", fill = "skyblue") +
-    labs(title = "Base Pair Counts (Absolute)", x = "Bases", y = "Count (bp)") 
-  p2 <- ggplot(df, aes(x = Base, y = Percentage)) +
-    geom_bar(stat = "identity", fill = "salmon") +
-    labs(title = "Base Pair Counts (Percentage)", x = "Bases", y = "Percentage (%)") 
-  
-  p1+p2
+  p <- ggplot(df, aes(x = Base, y = Percentage)) +
+    geom_bar(stat = "identity", fill = "salmon", alpha=0.5) +
+    labs(title = "Base Pair Counts (Percentage)", x = "Bases", y = "Percentage (%)")
+    # scale_fill_manual(values = c("A" = "salmon", "C" = "skyblue", "T" = "orange", "G"= "lightgreen", "N" = "purple"))
+  p
 }
+
+# Funkcia show_gc_content najde cestu k gc content grafu
+show_gc_content <- function(qualimap_folder){
+  file_path <- file.path(qualimap_folder, "images_qualimapReport/genome_gc_content_per_window.png")
+  if (!file.exists(file_path)) {
+    return(NULL)
+  }
+  file_path
+}
+
+# Funkcia show_insert_size_across_reference najde cestu k insert size across reference 
+show_insert_size_across_reference<- function(qualimap_folder){
+  file_path <- file.path(qualimap_folder, "images_qualimapReport/genome_insert_size_across_reference.png")
+  if (!file.exists(file_path)) {
+    return(NULL)
+  }
+  file_path
+}
+
+# Funkcia show_insert_size_histogram najde cestu k insert size histogramu
+show_insert_size_histogram <- function(qualimap_folder){
+  file_path <- file.path(qualimap_folder, "images_qualimapReport/genome_insert_size_histogram.png")
+  if (!file.exists(file_path)) {
+    return(NULL)
+  }
+  file_path
+}
+
+# Funkcia show_duplication_rate_histogram najde cestu k duplication rate histogramu
+show_duplication_rate_histogram <- function(qualimap_folder){
+  file_path <- file.path(qualimap_folder, "images_qualimapReport/genome_uniq_read_starts_histogram.png")
+  if (!file.exists(file_path)) {
+    return(NULL)
+  }
+  file_path
+}
+
+# Funkcia show_mapping_quality_histogram najde cestu k mapping quality histogramu
+show_mapping_quality_histogram <- function(qualimap_folder){
+  file_path <- file.path(qualimap_folder, "images_qualimapReport/genome_mapping_quality_histogram.png")
+  if (!file.exists(file_path)) {
+    return(NULL)
+  }
+  file_path
+}
+
+
+
+

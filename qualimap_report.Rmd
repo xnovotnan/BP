@@ -1,0 +1,89 @@
+---
+title: "Qualimap Analysis Report"
+output: pdf_document
+params:
+  num_of_bases: NA
+  num_of_contigs: NA
+  num_of_reads: NA
+  num_of_mapped_reads: NA
+  num_of_mapped_paired_reads: NA
+  num_of_mapped_paired_reads_singletons: NA
+  num_of_mapped_bases: NA
+  num_of_sequenced_bases: NA
+  num_of_duplicated_reads: NA
+  mean_insert_size: NA
+  median_insert_size: NA
+  std_insert_size: NA
+  mean_coverage: NA
+  std_coverage: NA
+  gc_percentage: NA
+  duplication_rate_histogram: "duplication_rate_histogram.png"
+  mapping_quality_histogram: "mapping_quality_histogram.png"
+  insert_size_across_reference: "insert_size_across_reference.png"
+  insert_size_histogram: "insert_size_histogram.png"  
+  qualimap_coverage: "qualimap_coverage.png"  
+  qualimap_coverage_pc: "qualimap_coverage_pc.png"  
+  actg_content_barplot: "actg_content_barplot.png"  
+  cg_content_distribution: "cg_content_distribution.png"  
+output_dir: "reports/"
+---
+
+# Qualimap Analysis Report
+
+## Reference
+
+- **Number of Bases:** `r params$num_of_bases`
+- **Number of Contigs:** `r params$num_of_contigs`
+
+## Read Statistics
+
+- **Number of Reads:** `r params$num_of_reads`
+- **Number of Mapped Reads:** `r params$num_of_mapped_reads`
+- **Number of Mapped Paired Reads:** `r params$num_of_mapped_paired_reads`
+- **Number of Mapped Paired Reads (singletons):** `r params$num_of_mapped_paired_reads_singletons`
+- **Number of Mapped Bases:** `r params$num_of_mapped_bases`
+- **Number of Sequenced Bases:** `r params$num_of_sequenced_bases`
+- **Number of Duplicated Reads:** `r params$num_of_duplicated_reads`
+
+## Duplication Rate Histogram
+
+```{r echo=FALSE, out.width="80%"}
+knitr::include_graphics(params$duplication_rate_histogram)
+```
+```{r echo=FALSE, out.width="80%"}
+knitr::include_graphics(params$mapping_quality_histogram)
+```
+
+## Insert Size
+- **Mean Insert Size:** `r params$mean_insert_size`
+- **Median Insert Size:** `r params$median_insert_size`
+- **Standard Deviation of Insert Size:** `r params$std_insert_size`
+
+```{r echo=FALSE, out.width="80%"}
+knitr::include_graphics(params$insert_size_across_reference)
+```
+```{r echo=FALSE, out.width="80%"}
+knitr::include_graphics(params$insert_size_histogram)
+```
+
+## Data Coverage Analysis
+- **Mean Coverage:** `r params$mean_coverage`
+- **Standard Deviation of Coverage:** `r params$std_coverage`
+
+```{r echo=FALSE, out.width="80%"}
+print(params$qualimap_coverage)
+```
+```{r echo=FALSE, out.width="80%"}
+print(params$qualimap_coverage_pc)
+```
+
+## ACTG Content
+- **GC Percentage:** `r params$gc_percentage`
+
+```{r echo=FALSE, out.width="80%"}
+print(params$actg_content_barplot)
+```
+```{r echo=FALSE, out.width="80%"}
+knitr::include_graphics(params$cg_content_distribution)
+```
+

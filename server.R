@@ -2,6 +2,7 @@ library(shiny)
 library(bslib)
 library(DT)
 library(shinyFiles)
+library(tinytex)
 source("data_processing.R")
 source("mutation_analysis.R")
 source("qualimap_analysis.R")
@@ -13,17 +14,17 @@ options(shiny.maxRequestSize = 2000 * 1024^2)
 # serverova cast shiny aplikacie, spracovanie vcf suboru, 
 
 server <- function(input, output, session) {
+  # ---------- SIDE PANEL ----------
   
-  # ---------- SPRACOVANIE VCF SUBORU ----------
+  # SELECT VCF FILE
   processed_data <- reactive({
-    req(input$file1)
+    req(input$vcf_file)
     withProgress(message = "Preprocessing file...", value = 0, {
-      prepare_data(input$file1$datapath)
+      prepare_data(input$vcf_file$datapath)
     })
   })
   
-  # ---------- SIDE PANEL ----------
-  # dynamicky vyber chromozomu v bocnom paneli
+  # SELECT CHROMOSOME
   observe({
     data <- processed_data()
     req(data)
@@ -32,8 +33,9 @@ server <- function(input, output, session) {
     updateSelectInput(session, "chrom_select", choices = chrom_choices, selected = "All")
   })
   
+  
   # ---------- FILE SUMMARY WINDOW ----------
-  # zakladna summary statistika
+  # summary statistika atributov
   output$file_summary <- renderPrint({
     data <- processed_data()
     if (input$chrom_select != "All") {
@@ -44,7 +46,7 @@ server <- function(input, output, session) {
   
   # grafy distribucie 
   output$basic_visualizations <- renderPlot({
-    if (is.null(input$file1)) {
+    if (is.null(input$vcf_file)) {
       ggplot() + 
         theme_minimal() +
         ggtitle("Waiting for file upload...") + 
@@ -61,7 +63,7 @@ server <- function(input, output, session) {
     }
   })
   
-  # ukazka dat zo spracovaneho vstupneho suboru
+  # tabulka zo spracovaneho vstupneho suboru
   output$table_view <- renderDataTable({
     data <- processed_data()
     if (input$chrom_select != "All") {
@@ -80,13 +82,21 @@ server <- function(input, output, session) {
   # ---------- MUTATION ANALYSIS WINDOW ----------
   # Zhrnutie mutacii
   output$mut_summary <- renderPlot({
-    data <- processed_data()
-    req(data)
-    if (input$chrom_select != "All") {
-      data %<>% filter(CHROM == input$chrom_select)
+    if (is.null(input$vcf_file)) {
+      ggplot() + 
+        theme_minimal() +
+        ggtitle("Waiting for file upload...") + 
+        theme(
+          plot.title = element_text(size = 16, hjust = 0.5)
+        )
+    } else {
+      data <- processed_data()
+      req(data)
+      if (input$chrom_select != "All") {
+        data %<>% filter(CHROM == input$chrom_select)
+      }
+      mut_summary(data, input$analysis_level == "Subtypes")
     }
-    
-    mut_summary(data, input$analysis_level == "Subtypes")
   })
   
   # Heatmapa mutacii
@@ -121,23 +131,26 @@ server <- function(input, output, session) {
     folder_path <- parseDirPath(volumes, input$qualimap_folder)
     process_qualimap(folder_path)
   })
-  # Selected folder path
-  output$folder_path <- renderText({
+  qualimap_folder_path <- reactive({
     req(typeof(input$qualimap_folder) != "integer")
     folder_path <- parseDirPath(volumes, input$qualimap_folder)
+  })
+  # Selected folder path
+  output$selected_folder_path <- renderText({
+    folder_path <- qualimap_folder_path()
+    req(folder_path)
     paste(folder_path)
   })
+
   
-  # ELEMENTARY METRICS
+  # REFERENCE
   output$num_of_bases <- renderText({
     paste("Number of Bases:", qualimap_data()["number of bases"])
   })
   output$num_of_contigs <- renderText({
     paste("Number of Contigs:", qualimap_data()["number of contigs"])
   })
-  output$mean_mapping_quality <- renderText({
-    paste("Mean Mapping Quality:", qualimap_data()["mean mapping quality"])
-  })
+
   
   # READ STATISTICS
   output$num_of_reads <- renderText({
@@ -149,6 +162,9 @@ server <- function(input, output, session) {
   output$num_of_mapped_paired_reads <- renderText({
     paste("Number of Mapped Paired Reads:", qualimap_data()["number of mapped paired reads (both in pair)"])
   })
+  output$num_of_mapped_paired_reads_singletons <- renderText({
+    paste("Number of Mapped Paired Reads (singletons):", qualimap_data()["number of mapped paired reads (singletons)"])
+  })
   output$num_of_mapped_bases <- renderText({
     paste("Number of Mapped Bases:", qualimap_data()["number of mapped bases"])
   })
@@ -158,6 +174,30 @@ server <- function(input, output, session) {
   output$num_of_duplicated_reads <- renderText({
     paste("Number of Duplicated Reads:", qualimap_data()["number of duplicated reads (flagged)"])
   })
+  # duplication rate histogram
+  output$duplication_rate_histogram <- renderImage({
+    folder_path <- qualimap_folder_path()
+    req(folder_path)
+    file_path <- show_duplication_rate_histogram(folder_path)
+    list(src = file_path,
+         contentType = "image/png",
+         width = "100%")
+  }, deleteFile = FALSE)
+  
+  
+  # MAPPING QUALITY
+  output$mean_mapping_quality <- renderText({
+    paste("Mean Mapping Quality:", qualimap_data()["mean mapping quality"])
+  })
+  output$mapping_quality_histogram <- renderImage({
+    folder_path <- qualimap_folder_path()
+    req(folder_path)
+    file_path <- show_mapping_quality_histogram(folder_path)
+    list(src = file_path,
+         contentType = "image/png",
+         width = "100%")
+  }, deleteFile = FALSE)
+  
   
   # INSERT SIZE
   output$mean_insert_size <- renderText({
@@ -169,6 +209,25 @@ server <- function(input, output, session) {
   output$std_insert_size <- renderText({
     paste("Standard Deviation of Insert Size:", qualimap_data()["std insert size"])
   })
+  # insert size across reference
+  output$insert_size_across_reference <- renderImage({
+    folder_path <- qualimap_folder_path()
+    req(folder_path)
+    file_path <- show_insert_size_across_reference(folder_path)
+    list(src = file_path,
+         contentType = "image/png",
+         width = "100%")
+  }, deleteFile = FALSE)
+  # insert size histogram
+  output$insert_size_histogram <- renderImage({
+    folder_path <- qualimap_folder_path()
+    req(folder_path)
+    file_path <- show_insert_size_histogram(folder_path)
+    list(src = file_path,
+         contentType = "image/png",
+         width = "100%")
+  }, deleteFile = FALSE)
+  
   
   # DATA COVERAGE ANALYSIS
   output$mean_coverage <- renderText({
@@ -179,27 +238,74 @@ server <- function(input, output, session) {
   })
   # Coverage graf
   output$qualimap_coverage <- renderPlot({
-    req(typeof(input$qualimap_folder) != "integer")
-    folder_path <- parseDirPath(volumes, input$qualimap_folder)
+    folder_path <- qualimap_folder_path()
+    req(folder_path)
     process_qualimap_coverage(folder_path)
   })
   # Coverage per contig graf
   output$qualimap_coverage_pc <- renderPlot({
-    req(typeof(input$qualimap_folder) != "integer")
-    folder_path <- parseDirPath(volumes, input$qualimap_folder)
+    folder_path <- qualimap_folder_path()
+    req(folder_path)
     process_qualimap_coverage_pc(folder_path)
   })
+  
   
   # ACTG CONTENT
   output$gc_percentage <- renderText({
     paste("GC Percentage:", qualimap_data()["GC percentage"])
   })
-  output$actg_content <- renderPlot({
+  output$actg_content_barplot <- renderPlot({
     data <- qualimap_data()
     req(data)
     process_ACTG_content(data)
   })
+  output$cg_content_distribution <- renderImage({
+    folder_path <- qualimap_folder_path()
+    req(folder_path)
+    file_path <- show_gc_content(folder_path)
+    list(src = file_path,
+         contentType = "image/png",
+         width = "100%")
+  }, deleteFile = FALSE)
   
+  
+  # PDF REPORT
+  output$download_qualimap_pdf <- downloadHandler(
+    filename = "report.pdf",
+    content = function(file) {
+      tempReport <- file.path(tempdir(), "qualimap_report.Rmd")
+      file.copy("qualimap_report.Rmd", tempReport, overwrite = TRUE)
+      params <- list(
+        num_of_bases = qualimap_data()["number of bases"],
+        num_of_contigs = qualimap_data()["number of contigs"],
+        num_of_reads = qualimap_data()["number of reads"],
+        num_of_mapped_reads = qualimap_data()["number of mapped reads"],
+        num_of_mapped_paired_reads = qualimap_data()["number of mapped paired reads (both in pair)"],
+        num_of_mapped_paired_reads_singletons = qualimap_data()["number of mapped paired reads (singletons)"],
+        num_of_mapped_bases = qualimap_data()["number of mapped bases"],
+        num_of_sequenced_bases = qualimap_data()["number of sequenced bases"],
+        num_of_duplicated_reads = qualimap_data()["number of duplicated reads (flagged)"],
+        mean_insert_size = qualimap_data()["mean insert size"],
+        median_insert_size = qualimap_data()["median insert size"],
+        std_insert_size = qualimap_data()["std insert size"],
+        mean_coverage = qualimap_data()["mean coverageData"],
+        std_coverage = qualimap_data()["std coverageData"],
+        gc_percentage = qualimap_data()["GC percentage"],
+        duplication_rate_histogram = show_duplication_rate_histogram(qualimap_folder_path()),
+        mapping_quality_histogram = show_mapping_quality_histogram(qualimap_folder_path()),
+        insert_size_across_reference = show_insert_size_across_reference(qualimap_folder_path()),
+        insert_size_histogram = show_insert_size_histogram(qualimap_folder_path()),
+        qualimap_coverage = process_qualimap_coverage(qualimap_folder_path()),
+        qualimap_coverage_pc = process_qualimap_coverage_pc(qualimap_folder_path()),  
+        actg_content_barplot = process_ACTG_content(qualimap_data()), 
+        cg_content_distribution = show_gc_content(qualimap_folder_path())   
+      )
 
+      rmarkdown::render(tempReport, output_file = file,
+                        params = params,
+                        envir = new.env(parent = globalenv())
+      )
+    }
+  )
 }
 
