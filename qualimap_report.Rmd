@@ -25,10 +25,7 @@ params:
   qualimap_coverage_pc: "qualimap_coverage_pc.png"  
   actg_content_barplot: "actg_content_barplot.png"  
   cg_content_distribution: "cg_content_distribution.png"  
-output_dir: "reports/"
 ---
-
-# Qualimap Analysis Report
 
 ## Reference
 
@@ -45,11 +42,12 @@ output_dir: "reports/"
 - **Number of Sequenced Bases:** `r params$num_of_sequenced_bases`
 - **Number of Duplicated Reads:** `r params$num_of_duplicated_reads`
 
-## Duplication Rate Histogram
-
+### Duplication Rate Histogram:
 ```{r echo=FALSE, out.width="80%"}
 knitr::include_graphics(params$duplication_rate_histogram)
 ```
+
+### Mapping Quality Histogram:
 ```{r echo=FALSE, out.width="80%"}
 knitr::include_graphics(params$mapping_quality_histogram)
 ```
@@ -59,9 +57,12 @@ knitr::include_graphics(params$mapping_quality_histogram)
 - **Median Insert Size:** `r params$median_insert_size`
 - **Standard Deviation of Insert Size:** `r params$std_insert_size`
 
+### Insert size across reference:
 ```{r echo=FALSE, out.width="80%"}
 knitr::include_graphics(params$insert_size_across_reference)
 ```
+
+### Insert size histogram:
 ```{r echo=FALSE, out.width="80%"}
 knitr::include_graphics(params$insert_size_histogram)
 ```
@@ -70,9 +71,12 @@ knitr::include_graphics(params$insert_size_histogram)
 - **Mean Coverage:** `r params$mean_coverage`
 - **Standard Deviation of Coverage:** `r params$std_coverage`
 
+### Coverage:
 ```{r echo=FALSE, out.width="80%"}
 print(params$qualimap_coverage)
 ```
+
+### Mean Coverage Across Chromosomes:
 ```{r echo=FALSE, out.width="80%"}
 print(params$qualimap_coverage_pc)
 ```
@@ -80,9 +84,12 @@ print(params$qualimap_coverage_pc)
 ## ACTG Content
 - **GC Percentage:** `r params$gc_percentage`
 
+### ACTG content barplot:
 ```{r echo=FALSE, out.width="80%"}
 print(params$actg_content_barplot)
 ```
+
+### CG content distribution:
 ```{r echo=FALSE, out.width="80%"}
 knitr::include_graphics(params$cg_content_distribution)
 ```

@@ -8,12 +8,12 @@ source("css.R")
 
 ui <- page_sidebar(
   # ---------- SIDE BAR ----------
-  title = "Uploading VCF Files",
+  title = "Uploading Files",
   sidebar = sidebar(
     theme = "bootstrap5",
     
     # Nacitanie suboru
-    fileInput(inputId = "vcf_file", label = "Choose VCF File", multiple = FALSE, 
+    fileInput(inputId = "vcf_file", label = "Select VCF File", multiple = FALSE, 
               accept = ".vcf"),
     
     # Vyber chromozomu 

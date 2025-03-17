@@ -11,7 +11,7 @@ options(shiny.maxRequestSize = 2000 * 1024^2)
 # -----------------------------------
 # SERVER
 # -----------------------------------
-# serverova cast shiny aplikacie, spracovanie vcf suboru, 
+# serverova cast shiny aplikacie, spracovanie vcf suboru, qualimap folderu 
 
 server <- function(input, output, session) {
   # ---------- SIDE PANEL ----------
@@ -135,7 +135,6 @@ server <- function(input, output, session) {
     req(typeof(input$qualimap_folder) != "integer")
     folder_path <- parseDirPath(volumes, input$qualimap_folder)
   })
-  # Selected folder path
   output$selected_folder_path <- renderText({
     folder_path <- qualimap_folder_path()
     req(folder_path)
@@ -174,11 +173,10 @@ server <- function(input, output, session) {
   output$num_of_duplicated_reads <- renderText({
     paste("Number of Duplicated Reads:", qualimap_data()["number of duplicated reads (flagged)"])
   })
-  # duplication rate histogram
   output$duplication_rate_histogram <- renderImage({
     folder_path <- qualimap_folder_path()
     req(folder_path)
-    file_path <- show_duplication_rate_histogram(folder_path)
+    file_path <- find_png(folder_path, "genome_uniq_read_starts_histogram.png")
     list(src = file_path,
          contentType = "image/png",
          width = "100%")
@@ -192,7 +190,7 @@ server <- function(input, output, session) {
   output$mapping_quality_histogram <- renderImage({
     folder_path <- qualimap_folder_path()
     req(folder_path)
-    file_path <- show_mapping_quality_histogram(folder_path)
+    file_path <- find_png(folder_path, "genome_mapping_quality_histogram.png")
     list(src = file_path,
          contentType = "image/png",
          width = "100%")
@@ -209,20 +207,18 @@ server <- function(input, output, session) {
   output$std_insert_size <- renderText({
     paste("Standard Deviation of Insert Size:", qualimap_data()["std insert size"])
   })
-  # insert size across reference
   output$insert_size_across_reference <- renderImage({
     folder_path <- qualimap_folder_path()
     req(folder_path)
-    file_path <- show_insert_size_across_reference(folder_path)
+    file_path <- find_png(folder_path, "genome_insert_size_across_reference.png")
     list(src = file_path,
          contentType = "image/png",
          width = "100%")
   }, deleteFile = FALSE)
-  # insert size histogram
   output$insert_size_histogram <- renderImage({
     folder_path <- qualimap_folder_path()
     req(folder_path)
-    file_path <- show_insert_size_histogram(folder_path)
+    file_path <- find_png(folder_path, "genome_insert_size_histogram.png")
     list(src = file_path,
          contentType = "image/png",
          width = "100%")
@@ -236,13 +232,11 @@ server <- function(input, output, session) {
   output$std_coverage <- renderText({
     paste("Standard Deviation of Coverage:", qualimap_data()["std coverageData"])
   })
-  # Coverage graf
   output$qualimap_coverage <- renderPlot({
     folder_path <- qualimap_folder_path()
     req(folder_path)
     process_qualimap_coverage(folder_path)
   })
-  # Coverage per contig graf
   output$qualimap_coverage_pc <- renderPlot({
     folder_path <- qualimap_folder_path()
     req(folder_path)
@@ -262,7 +256,7 @@ server <- function(input, output, session) {
   output$cg_content_distribution <- renderImage({
     folder_path <- qualimap_folder_path()
     req(folder_path)
-    file_path <- show_gc_content(folder_path)
+    file_path <- find_png(folder_path,"genome_gc_content_per_window.png")
     list(src = file_path,
          contentType = "image/png",
          width = "100%")
@@ -291,14 +285,14 @@ server <- function(input, output, session) {
         mean_coverage = qualimap_data()["mean coverageData"],
         std_coverage = qualimap_data()["std coverageData"],
         gc_percentage = qualimap_data()["GC percentage"],
-        duplication_rate_histogram = show_duplication_rate_histogram(qualimap_folder_path()),
-        mapping_quality_histogram = show_mapping_quality_histogram(qualimap_folder_path()),
-        insert_size_across_reference = show_insert_size_across_reference(qualimap_folder_path()),
-        insert_size_histogram = show_insert_size_histogram(qualimap_folder_path()),
+        duplication_rate_histogram = find_png(qualimap_folder_path(), "genome_uniq_read_starts_histogram.png"),
+        mapping_quality_histogram = find_png(qualimap_folder_path(), "genome_mapping_quality_histogram.png"),
+        insert_size_across_reference = find_png(qualimap_folder_path(), "genome_insert_size_across_reference.png"),
+        insert_size_histogram = find_png(qualimap_folder_path(), "genome_insert_size_histogram.png"),
         qualimap_coverage = process_qualimap_coverage(qualimap_folder_path()),
         qualimap_coverage_pc = process_qualimap_coverage_pc(qualimap_folder_path()),  
         actg_content_barplot = process_ACTG_content(qualimap_data()), 
-        cg_content_distribution = show_gc_content(qualimap_folder_path())   
+        cg_content_distribution = find_png(qualimap_folder_path(),"genome_gc_content_per_window.png")
       )
 
       rmarkdown::render(tempReport, output_file = file,
