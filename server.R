@@ -136,6 +136,7 @@ server <- function(input, output, session) {
     req(folderPath)
     paste(folderPath)
   })
+  
   qualimapModuleServer("qualimap", qualimapFolderPath)
   
 }
