@@ -6,12 +6,10 @@ library(ggridges)
 library(ComplexHeatmap)
 theme_set(theme_minimal() + 
             theme(
-              plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
-              legend.position = "bottom",
-              axis.text.x = element_text(angle = 90, hjust = 1)
+              plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
+              legend.position = "bottom"
             ))
 options(scipen = 999)
-my_colors <- c("skyblue", "salmon", "orange", "lightgreen", "purple")
 
 # -----------------------------------
 # PREDSPRACOVANIE DAT, ZAKLADNA ANALYZA A VIZUALIZACIA QUALIMAP SUBORU
@@ -87,7 +85,8 @@ process_qualimap_coverage_pc <- function(qualimap_folder) {
   p <- ggplot(df, aes(x = chromosome, y = mean_coverage, group = 1)) +
     geom_line(color = "salmon", size = 1) +
     geom_point(color = "salmon", size = 2) +
-    labs(title = "Mean Coverage Across Chromosomes", x = "Chromosome", y = "Mean Coverage") 
+    labs(title = "Mean Coverage Across Chromosomes", x = "Chromosome", y = "Mean Coverage")+
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
   p
 }
 

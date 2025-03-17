@@ -5,9 +5,9 @@ library(shinyFiles)
 library(tinytex)
 source("data_processing.R")
 source("mutation_analysis.R")
-source("qualimap_analysis.R")
+source(file.path("QualimapModule", "qualimapAnalysis.R"))
+source(file.path("QualimapModule", "qualimapModuleServer.R"))
 options(shiny.maxRequestSize = 2000 * 1024^2)
-source("qualimapModuleServer.R") 
 
 # -----------------------------------
 # SERVER
@@ -33,6 +33,20 @@ server <- function(input, output, session) {
     chrom_choices <- c("All", as.character(chroms))
     updateSelectInput(session, "chrom_select", choices = chrom_choices, selected = "All")
   })
+  
+  # SELECT QUALIMAP FOLDER
+  volumes <- c(Home = path.expand("~"), Desktop = "~/Desktop", Documents = "~/Documents")
+  shinyDirChoose(input, "qualimapFolder", roots = volumes, session = session)
+  qualimapFolderPath <- reactive({
+    req(typeof(input$qualimapFolder) != "integer")
+    parseDirPath(volumes, input$qualimapFolder)
+  })
+  output$selectedFolderPath <- renderText({
+    folderPath <- qualimapFolderPath()
+    req(folderPath)
+    paste(folderPath)
+  })
+  
   
   
   # ---------- FILE SUMMARY WINDOW ----------
@@ -124,19 +138,6 @@ server <- function(input, output, session) {
   
   
   # ---------- QUALIMAP ANALYSIS ----------
-  
-  volumes <- c(Home = path.expand("~"), Desktop = "~/Desktop", Documents = "~/Documents")
-  shinyDirChoose(input, "qualimapFolder", roots = volumes, session = session)
-  qualimapFolderPath <- reactive({
-    req(typeof(input$qualimapFolder) != "integer")
-    parseDirPath(volumes, input$qualimapFolder)
-  })
-  output$selectedFolderPath <- renderText({
-    folderPath <- qualimapFolderPath()
-    req(folderPath)
-    paste(folderPath)
-  })
-  
   qualimapModuleServer("qualimap", qualimapFolderPath)
   
 }

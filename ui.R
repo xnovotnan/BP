@@ -5,7 +5,8 @@ library(DT)
 library(shinyFiles)
 library(tinytex)
 source("css.R")
-source("qualimapModuleUI.R") 
+source(file.path("QualimapModule", "qualimapModuleUI.R"))
+
 
 ui <- page_sidebar(
   # ---------- SIDE BAR ----------

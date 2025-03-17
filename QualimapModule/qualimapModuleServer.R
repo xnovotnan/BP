@@ -5,7 +5,7 @@ library(DT)
 library(shinyFiles)
 library(tinytex)
 source("data_processing.R")
-source("qualimap_analysis.R")
+source(file.path("QualimapModule", "qualimapAnalysis.R"))
 options(shiny.maxRequestSize = 2000 * 1024^2)
 
 # Serverová časť modulu pre Qualimap analýzu
