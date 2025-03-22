@@ -14,7 +14,6 @@ library(ggridges)
 prepare_data <- function(vcf_file){
   suppressWarnings(suppressMessages({
     sink("/dev/null")
-
     incProgress(0.1, detail = "Reading file...")
     header_line <- grep("^#CHROM", readLines(vcf_file)) 
     vcf_tibble <- read_delim(vcf_file, delim = "\t", skip = header_line - 1)
@@ -28,7 +27,8 @@ prepare_data <- function(vcf_file){
         TYPE = ifelse(nchar(REF) == 1 & nchar(ALT) == 1,"SNP", "INDEL")) %>%
       filter(QUAL > 200, 
              GT %in% c("1|1", "0|1", "1|0", "1/1", "0/1", "1/0"),
-             DP>0)
+             DP>0,
+             CHROM != "chrM")
     incProgress(0.7, detail = "Categorizing mutations...")
     purines <- c("A", "G")
     pyrimidines <- c("C", "T")
@@ -41,6 +41,8 @@ prepare_data <- function(vcf_file){
     incProgress(0.9, detail = "Completing preprocessing...")
     vcf_tibble$CHROM <- factor(vcf_tibble$CHROM, levels = c(paste0("chr", 1:22), "chrX", "chrY", "chrM"))
     vcf_tibble %<>% select(c("CHROM", "POS", "REF", "ALT", "TYPE", "SUBTYPE", "QUAL", "GT", "AD", "DP", "AF"))
+    sink(NULL)
+    vcf_tibble
   }))
 }
 
@@ -109,3 +111,4 @@ plot_summary <- function(data){
 #   subplot(hist_chrom, hist_type, hist_subtype, nrows = 1) %>%
 #     subplot(boxplot_qual, boxplot_dp, boxplot_af, boxplot_ad, nrows = 2)
 # }
+

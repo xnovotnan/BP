@@ -4,7 +4,8 @@ library(DT)
 library(shinyFiles)
 library(tinytex)
 source("data_processing.R")
-source("mutation_analysis.R")
+source(file.path("VCFModule", "mutationAnalysis.R"))
+source(file.path("VCFModule", "vcfModuleServer.R"))
 source(file.path("QualimapModule", "qualimapAnalysis.R"))
 source(file.path("QualimapModule", "qualimapModuleServer.R"))
 options(shiny.maxRequestSize = 2000 * 1024^2)
@@ -16,12 +17,11 @@ options(shiny.maxRequestSize = 2000 * 1024^2)
 
 server <- function(input, output, session) {
   # ---------- SIDE PANEL ----------
-  
   # SELECT VCF FILE
   processedData <- reactive({
-    req(input$vcf_file)
+    req(input$vcfFile)
     withProgress(message = "Preprocessing file...", value = 0, {
-      prepare_data(input$vcf_file$datapath)
+      prepare_data(input$vcfFile$datapath)
     })
   })
   
@@ -30,8 +30,13 @@ server <- function(input, output, session) {
     data <- processedData()
     req(data)
     chroms <- unique(data$CHROM)
-    chrom_choices <- c("All", as.character(chroms))
-    updateSelectInput(session, "chrom_select", choices = chrom_choices, selected = "All")
+    chromChoices <- c("All", as.character(chroms))
+    updateSelectInput(session, "chrom_select", choices = chromChoices, selected = "All")
+  })
+  
+  chrom_select_val <- reactiveVal("All")
+  observe({
+    chrom_select_val(input$chrom_select)
   })
   
   # SELECT QUALIMAP FOLDER
@@ -46,8 +51,7 @@ server <- function(input, output, session) {
     req(folderPath)
     paste(folderPath)
   })
-  
-  
+
   
   # ---------- FILE SUMMARY WINDOW ----------
   # summary statistika atributov
@@ -61,7 +65,7 @@ server <- function(input, output, session) {
   
   # grafy distribucie 
   output$basic_visualizations <- renderPlot({
-    if (is.null(input$vcf_file)) {
+    if (is.null(input$vcfFile)) {
       ggplot() + 
         theme_minimal() +
         ggtitle("Waiting for file upload...") + 
@@ -94,48 +98,9 @@ server <- function(input, output, session) {
   ),selection = "none")
   
   
+  
   # ---------- MUTATION ANALYSIS WINDOW ----------
-  # Zhrnutie mutacii
-  output$mut_summary <- renderPlot({
-    if (is.null(input$vcf_file)) {
-      ggplot() + 
-        theme_minimal() +
-        ggtitle("Waiting for file upload...") + 
-        theme(
-          plot.title = element_text(size = 16, hjust = 0.5)
-        )
-    } else {
-      data <- processedData()
-      req(data)
-      if (input$chrom_select != "All") {
-        data %<>% filter(CHROM == input$chrom_select)
-      }
-      mut_summary(data, input$analysis_level == "Subtypes")
-    }
-  })
-  
-  # Heatmapa mutacii
-  output$mut_heatmap <- renderPlot({
-    data <- processedData()
-    req(data)
-    if(input$chrom_select != "All"){
-      data %<>% filter(CHROM == input$chrom_select)
-    }
-    
-    mutation_heatmap(data)
-  })
-  
-  # Mutacie na chromozomoch
-  output$mut_dist <- renderPlot({
-    data <- processedData()
-    req(data)
-    if(input$chrom_select != "All"){
-      data %<>% filter(CHROM == input$chrom_select)
-    }
-    
-    mut_dist(data, input$analysis_level == "Subtypes")
-  })
-  
+  vcfModuleServer("vcf", processedData, chrom_select_val)
   
   # ---------- QUALIMAP ANALYSIS ----------
   qualimapModuleServer("qualimap", qualimapFolderPath)

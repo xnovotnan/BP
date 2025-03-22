@@ -4,7 +4,6 @@ library(shinyWidgets)
 library(DT)
 library(shinyFiles)
 library(tinytex)
-source("data_processing.R")
 source(file.path("QualimapModule", "qualimapAnalysis.R"))
 options(shiny.maxRequestSize = 2000 * 1024^2)
 
@@ -142,8 +141,8 @@ qualimapModuleServer <- function(id, qualimapFolderPath) {
     output$download_qualimap_pdf <- downloadHandler(
       filename = "report.pdf",
       content = function(file) {
-        tempReport <- file.path(tempdir(), "qualimap_report.Rmd")
-        file.copy("qualimap_report.Rmd", tempReport, overwrite = TRUE)
+        tempReport <- file.path("QualimapModule", "qualimapReport.Rmd") 
+        file.copy("qualimapReport.Rmd", tempReport, overwrite = TRUE)
         params <- list(
           num_of_bases = qualimapData()["number of bases"],
           num_of_contigs = qualimapData()["number of contigs"],

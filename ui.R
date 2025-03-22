@@ -6,6 +6,7 @@ library(shinyFiles)
 library(tinytex)
 source("css.R")
 source(file.path("QualimapModule", "qualimapModuleUI.R"))
+source(file.path("VCFModule", "vcfModuleUI.R"))
 
 
 ui <- page_sidebar(
@@ -14,20 +15,14 @@ ui <- page_sidebar(
   sidebar = sidebar(
     theme = "bootstrap5",
     
-    # Nacitanie suboru
-    fileInput(inputId = "vcf_file", label = "Select VCF File", multiple = FALSE, 
+    fileInput(inputId = "vcfFile", label = "Select VCF File", multiple = FALSE, 
               accept = ".vcf"),
-    
-    # Vyber chromozomu 
     selectInput(inputId = "chrom_select", label = "Select Chromosome:", 
                 choices = c("All"), selected = "All"),
-    
-    # Pocet observacii
     numericInput(inputId = "obs", label = "Number of observations to view:", 
                  value = 10),
     
     tags$hr(),
-    
     h6("Select Qualimap Folder"),
     shinyDirButton("qualimapFolder", "Browse...", "Choose Qualimap Folder"),
     verbatimTextOutput("selectedFolderPath"),
@@ -50,21 +45,8 @@ ui <- page_sidebar(
     # ---------- MUTATION ANALYSIS WINDOW ----------
     nav_panel(
       "Mutation Analysis",
-      fluidRow(
-        column(12, h3("Variant Summary per file / per chromosome", 
-                      style = "text-align: center; margin-top: 20px;")),
-        selectInput(inputId = "analysis_level", label = "Select Analysis Level:",
-                    choices = c("Types", "Subtypes"), selected = "Types")
-      ),
-      fluidRow(
-        column(5, plotOutput("mut_summary")), 
-        column(5, plotOutput("mut_dist"))
-      ),
-      fluidRow(
-        column(5, plotOutput("mut_heatmap"))
-      )
+      vcfModuleUI("vcf")
     ),
-    
     
     # ---------- QUALIMAP ANALYSIS ----------
     nav_panel(
