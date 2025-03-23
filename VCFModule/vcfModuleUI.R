@@ -15,20 +15,21 @@ vcfModuleUI <- function(id) {
       column(6, selectInput(ns("analysisLevel"), "Select Analysis Level:",
                             choices = c("Types", "Subtypes"), selected = "Types")),
       column(6, selectInput(ns("valueType"), "Select Value Type:",
-                            choices = c("Absolute", "Percentage"), selected = "Absolute"))
+                            choices = c("Absolute", "Percentage"), selected = "Percentage"))
     ),
     h4("Mutation counts"),
     fluidRow(
-      column(6, plotOutput(ns("mut_summary"))),
-      column(6, plotOutput(ns("mut_dist")))
+      column(6, plotOutput(ns("mutation_donut"))),
+      column(6, plotOutput(ns("mutation_distribution")))
     ),
     h4("Single Nucleotide Variation (SNV) Analysis"),
     fluidRow(
       column(4, plotOutput(ns("snv_types"))),
-      column(8, plotOutput(ns("snv_class"))),
+      column(8, plotOutput(ns("snv_classes"))),
       column(6, plotOutput(ns("snv_class_combined"))),
       column(6, plotOutput(ns("snv_class_stacked")))
-    )
+    ),
+    h4("Insertions and Deletions (INDELs) Analysis")
     
   )
 }

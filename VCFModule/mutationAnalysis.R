@@ -17,8 +17,7 @@ my_colors <- c("skyblue", "salmon", "orange", "lightgreen", "purple", "yellow","
 # TYPY MUTACII A ICH DISTRIBUCIA
 # -----------------------------------
 
-# Distribúcia mutácií - donut chart
-mut_summary <- function(vcfTibble, subtypes=FALSE, valueType){
+mutation_donut <- function(vcfTibble, subtypes=FALSE, valueType){
   if (subtypes) vcfTibble$TYPE <- vcfTibble$SUBTYPE
   mutationCounts <- vcfTibble %>%
     group_by(TYPE) %>%
@@ -31,48 +30,35 @@ mut_summary <- function(vcfTibble, subtypes=FALSE, valueType){
                              TRUE ~ paste0(TYPE, "s\n", label_comma()(count))))
            
   p <- ggplot(mutationCounts, aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=TYPE)) +
-    geom_rect() +
-    geom_text(x=3.5, aes(y=labelPosition, label=label), size=3) +
-    scale_fill_manual(values = my_colors) +
+    geom_rect(show.legend = FALSE) +
     coord_polar(theta="y") +
     xlim(c(2, 4)) +
+    scale_fill_brewer(palette = "Set3") +
+    geom_text(x=3.5, aes(y=labelPosition, label=label), size=3) +
     theme_void() +
-    theme(legend.position = "none", 
-          plot.title = element_text(hjust = 0.5, size = 12, face = "bold"))+
+    theme(plot.title = element_text(hjust = 0.5, size = 12, face = "bold")) +
     labs(title = "Variant summary")
   p
 }
 
-# Distribúcia mutácií na jednotlivých chromozómoch 
-# možnosť zvoliť úroveň klasifikácie mutácií aj konkrétny chromozóm
-mut_dist <- function(vcfTibble, subtypes=FALSE, valueType){
+mutation_distribution <- function(vcfTibble, subtypes=FALSE, valueType){
   if (subtypes) vcfTibble$TYPE <- vcfTibble$SUBTYPE
   mutationCounts <- vcfTibble %>% 
     group_by(CHROM, TYPE) %>% 
     summarise(count = n(), .groups = "drop") %>% 
     group_by(CHROM) %>%
     mutate(percentage = count * 100/ sum(count))
+  if (valueType == "Percentage") {mutationCounts$count <- percentage}
 
-  
-  if (valueType == "Percentage") {
-    p <- ggplot(mutationCounts, aes(x = CHROM, y = percentage, fill = TYPE)) +
-      geom_bar(stat = "identity", position = "stack")
-  }
-  else{
-    p <- ggplot(mutationCounts, aes(x = CHROM, y = count, fill = TYPE)) +
-      geom_bar(stat = "identity", position = "stack")
-  }
-
-  p <- p +
+  p <- ggplot(mutationCounts, aes(x = CHROM, y = count, fill = TYPE)) +
+    geom_bar(stat = "identity", position = "stack") +
     labs(x = NULL,y = NULL, title = "Variant Distribution on Chromosomes") +
     coord_flip() +
-    scale_fill_manual(values = my_colors)
-  
+    scale_fill_brewer(palette = "Set3")
   p
 }
 
-# Distribúcia SNV typov
-SNV_types <- function(vcfTibble){
+snv_types <- function(vcfTibble){
   vcfTibble %<>% filter(TYPE == "SNV")
   mutationCounts <- vcfTibble %>%
     group_by(SUBTYPE) %>%
@@ -84,36 +70,38 @@ SNV_types <- function(vcfTibble){
            label =paste0(SUBTYPE, "s\n", round(percentage * 100,2), "%"))
   
   p <- ggplot(mutationCounts, aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=SUBTYPE)) +
-    geom_rect() +
-    geom_text(x=3.5, aes(y=labelPosition, label=label), size=3) +
-    scale_fill_manual(values = c("orange", "lightgreen")) +
+    geom_rect(show.legend = FALSE) +
     coord_polar(theta="y") +
     xlim(c(2, 4)) +
+    geom_text(x=3.5, aes(y=labelPosition, label=label), size=3) +
     theme_void() +
-    theme(legend.position = "none", 
-          plot.title = element_text(hjust = 0.5, size = 12, face = "bold"))+
-    labs(title = "SNV Types")
+    theme(plot.title = element_text(hjust = 0.5, size = 12, face = "bold"))+
+    labs(title = "SNV Types Distribution") +
+    scale_fill_brewer(palette = "Set3")
   p
 }
 
 # SNV types
-SNV_class <- function(vcfTibble){
+snv_classes <- function(vcfTibble){
   vcfTibble %<>% filter(TYPE == "SNV") %>% group_by(SUBTYPE) %>%
-    count(SNV_TYPE = paste(REF, ALT, sep = ">")) %>%
+    count(SNV_TYPE = paste(REF, ALT, sep = ">")) %>% 
+    ungroup() %>%
     mutate(percentage = round(n *100/ sum(n), 2),
-           label =paste0(SNV_TYPE, "\n", percentage, "%"))
+           label = paste0(SNV_TYPE, "\n", percentage, "%"))
+  
   transitions <- vcfTibble %>% filter(SUBTYPE == "Transition")
   transversions <- vcfTibble %>% filter(SUBTYPE == "Transversion")
   
-  p1 <- ggplot(transitions, aes(x = percentage, y = reorder(SNV_TYPE, n))) +
+  p1 <- ggplot(transitions, aes(x = percentage, y = reorder(SNV_TYPE, n), fill = SNV_TYPE)) +
     geom_bar(stat = "identity", show.legend = FALSE) +
     labs(title = "Transitions", x = NULL, y = NULL) +
     theme_void() +
-    theme(plot.title = element_text(hjust = 0.5, size = 12, face = "bold"))+
-    geom_text(aes(x = percentage/2, label = label), size = 3, color = "black")+
+    theme(plot.title = element_text(hjust = 0.5, size = 12, face = "bold")) +
+    geom_text(aes(x = percentage / 2, label = label), size = 3, color = "black") +
     scale_fill_brewer(palette = "Set3")
   
-  p2 <- ggplot(transversions, aes(x = percentage, y = reorder(SNV_TYPE, n))) +
+  
+  p2 <- ggplot(transversions, aes(x = percentage, y = reorder(SNV_TYPE, n), fill = SNV_TYPE)) +
     geom_bar(stat = "identity", show.legend = FALSE) +
     labs(title = "Transversions", x = NULL, y = NULL) +
     theme_void() +
@@ -128,7 +116,7 @@ snv_class_combined <- function(vcfTibble){
   vcfTibble %<>% filter(TYPE == "SNV") %>% group_by(CHROM, SUBTYPE) %>%
     count(SNV_TYPE = paste(REF, ALT, sep = ">")) %>%
     mutate(percentage = round(n *100/ sum(n), 2))
-
+  
   p1 <- ggplot(vcfTibble, aes(x = reorder(SNV_TYPE, -percentage), y = percentage, fill = SUBTYPE)) +
     geom_boxplot(show.legend = FALSE) +
     labs(title = "Distribution of SNV Type",
@@ -171,5 +159,3 @@ snv_class_stacked <- function(vcfTibble){
   
   (p1 | p2)
 }
-
-

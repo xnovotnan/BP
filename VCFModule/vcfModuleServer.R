@@ -14,15 +14,15 @@ vcfModuleServer <- function(id, processedData, chromSelectVal) {
   moduleServer(id, function(input, output, session) {
     
     # Mutation counts
-    output$mut_summary <- renderPlot({
+    output$mutation_donut <- renderPlot({
       data <- processedData()
       req(data)
       chromSelect <- chromSelectVal()
       if (chromSelect != "All") {data %<>% filter(CHROM == chromSelect)}
       
-      mut_summary(data, input$analysisLevel == "Subtypes", input$valueType)
+      mutation_donut(data, input$analysisLevel == "Subtypes", input$valueType)
     })
-    output$mut_dist <- renderPlot({
+    output$mutation_distribution <- renderPlot({
       data <- processedData()
       req(data)
       chromSelect <- chromSelectVal()
@@ -37,14 +37,14 @@ vcfModuleServer <- function(id, processedData, chromSelectVal) {
       req(data)
       chromSelect <- chromSelectVal()
       if(chromSelect != "All"){data %<>% filter(CHROM == chromSelect)}
-      SNV_types(data)
+      snv_types(data)
     })
-    output$snv_class <- renderPlot({
+    output$snv_classes <- renderPlot({
       data <- processedData()
       req(data)
       chromSelect <- chromSelectVal()
       if(chromSelect != "All"){data %<>% filter(CHROM == chromSelect)}
-      SNV_class(data)
+      snv_classes(data)
     })
     output$snv_class_combined <- renderPlot({
       data <- processedData()
@@ -60,6 +60,5 @@ vcfModuleServer <- function(id, processedData, chromSelectVal) {
       if(chromSelect != "All"){data %<>% filter(CHROM == chromSelect)}
       snv_class_stacked(data)
     })
-
   })
 }
