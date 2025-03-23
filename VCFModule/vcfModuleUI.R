@@ -21,6 +21,14 @@ vcfModuleUI <- function(id) {
     fluidRow(
       column(6, plotOutput(ns("mut_summary"))),
       column(6, plotOutput(ns("mut_dist")))
+    ),
+    h4("Single Nucleotide Variation (SNV) Analysis"),
+    fluidRow(
+      column(4, plotOutput(ns("snv_types"))),
+      column(8, plotOutput(ns("snv_class"))),
+      column(6, plotOutput(ns("snv_class_combined"))),
+      column(6, plotOutput(ns("snv_class_stacked")))
     )
+    
   )
 }
