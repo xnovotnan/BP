@@ -24,12 +24,23 @@ vcfModuleUI <- function(id) {
     ),
     h4("Single Nucleotide Variation (SNV) Analysis"),
     fluidRow(
+      column(12, verbatimTextOutput(ns("snv_values"))),
       column(4, plotOutput(ns("snv_types"))),
-      column(8, plotOutput(ns("snv_classes"))),
-      column(6, plotOutput(ns("snv_class_combined"))),
-      column(6, plotOutput(ns("snv_class_stacked")))
+      column(8, plotOutput(ns("snv_class_stacked"))),
     ),
-    h4("Insertions and Deletions (INDELs) Analysis")
-    
+    fluidRow(
+      column(7, plotOutput(ns("snv_class_combined"))),
+      column(5, plotOutput(ns("snv_class")))
+    ),
+    h4("Insertion and Deletion (INDEL) Analysis"),
+    fluidRow(
+      column(12, verbatimTextOutput(ns("indel_values"))),
+      column(4, plotOutput(ns("indel_types"))),
+      column(8, plotOutput(ns("indel_stacked"))),
+      column(6, verbatimTextOutput(ns("indel_length_avg"))),
+      column(6, verbatimTextOutput(ns("indel_length_med"))),
+      column(8, plotOutput(ns("indel_length"))),
+      column(4, plotOutput(ns("indel_length_boxplot")))
+    )
   )
 }
