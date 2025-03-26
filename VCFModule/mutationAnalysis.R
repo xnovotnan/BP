@@ -34,7 +34,6 @@ mutation_donut <- function(vcfTibble, subtypes=FALSE, valueType){
     labs(title = "Variant Distribution")
   p
 }
-
 mutation_distribution <- function(vcfTibble, subtypes=FALSE, valueType){
   if (subtypes) vcfTibble$TYPE <- vcfTibble$SUBTYPE
   mutationCounts <- vcfTibble %>% 
@@ -53,9 +52,9 @@ mutation_distribution <- function(vcfTibble, subtypes=FALSE, valueType){
 }
 
 
-# SNV Analysis
-snv_types <- function(vcfTibble){
-  vcfTibble %<>% filter(TYPE == "SNV")
+# SNP Analysis
+snp_types <- function(vcfTibble){
+  vcfTibble %<>% filter(TYPE == "SNP")
   mutationCounts <- vcfTibble %>%
     group_by(SUBTYPE) %>%
     summarise(count = n(), .groups = "drop") %>%
@@ -72,21 +71,20 @@ snv_types <- function(vcfTibble){
     geom_text(x=3.5, aes(y=labelPosition, label=label), size=3) +
     theme_void() +
     theme(plot.title = element_text(hjust = 0.5, size = 12, face = "bold"))+
-    labs(title = "SNV Types Distribution") +
+    labs(title = "SNP Types Distribution") +
     scale_fill_brewer(palette = "Set3")
   p
 }
-
-snv_class_barplot <- function(vcfTibble){
-  vcfTibble %<>% filter(TYPE == "SNV") %>% 
-    count(SNV_TYPE = paste(REF, ALT, sep = ">")) %>% 
+snp_class_barplot <- function(vcfTibble){
+  vcfTibble %<>% filter(TYPE == "SNP") %>% 
+    count(SNP_TYPE = paste(REF, ALT, sep = ">")) %>% 
     mutate(percentage = round(n *100/ sum(n), 2),
-           label = paste0(SNV_TYPE, "\n", percentage, "%"))
-  vcfTibble$SNV_TYPE <- with(vcfTibble, reorder(SNV_TYPE, percentage, FUN = sum))
+           label = paste0(SNP_TYPE, "\n", percentage, "%"))
+  vcfTibble$SNP_TYPE <- with(vcfTibble, reorder(SNP_TYPE, percentage, FUN = sum))
   
-  p <- ggplot(vcfTibble, aes(x = percentage, y = reorder(SNV_TYPE, n), fill = SNV_TYPE)) +
+  p <- ggplot(vcfTibble, aes(x = percentage, y = reorder(SNP_TYPE, n), fill = SNP_TYPE)) +
     geom_bar(stat = "identity", show.legend = FALSE) +
-    labs(title = "SNV Types Percentages", x = NULL, y = "Percentage") +
+    labs(title = "SNP Types Percentages", x = NULL, y = "Percentage") +
     theme_void() +
     theme(plot.title = element_text(hjust = 0.5, size = 12, face = "bold")) +
     geom_text(aes(x = percentage/2, label = label), size = 3, color = "black")+
@@ -94,19 +92,18 @@ snv_class_barplot <- function(vcfTibble){
   
   p
 }
-
-snv_class_boxplot <- function(vcfTibble){
-  vcfTibble %<>% filter(TYPE == "SNV") %>% group_by(CHROM) %>%
-    count(SNV_TYPE = paste(REF, ALT, sep = ">")) %>%
+snp_class_boxplot <- function(vcfTibble){
+  vcfTibble %<>% filter(TYPE == "SNP") %>% group_by(CHROM) %>%
+    count(SNP_TYPE = paste(REF, ALT, sep = ">")) %>%
     mutate(percentage = round(n *100/ sum(n), 2),
-           subtype = ifelse(SNV_TYPE %in% c("A>G", "G>A", "C>T", "T>C"), 
+           subtype = ifelse(SNP_TYPE %in% c("A>G", "G>A", "C>T", "T>C"), 
                             "Transition", "Transversion"))
-  vcfTibble$SNV_TYPE <- with(vcfTibble, reorder(SNV_TYPE, percentage, FUN = sum))
+  vcfTibble$SNP_TYPE <- with(vcfTibble, reorder(SNP_TYPE, percentage, FUN = sum))
   
-  p <- ggplot(vcfTibble, aes(x = reorder(SNV_TYPE, -percentage), y = percentage, 
-                             color = subtype, fill = SNV_TYPE)) +
+  p <- ggplot(vcfTibble, aes(x = reorder(SNP_TYPE, -percentage), y = percentage, 
+                             color = subtype, fill = SNP_TYPE)) +
     geom_boxplot() +
-    labs(title = "Distribution of SNV Type",
+    labs(title = "Distribution of SNP Type",
          x = element_blank(),
          y = "Percentage") +
     theme_minimal()+
@@ -116,16 +113,15 @@ snv_class_boxplot <- function(vcfTibble){
   
   p
 }
-
-snv_class_stacked <- function(vcfTibble){
-  vcfTibble %<>% filter(TYPE == "SNV") %>% group_by(CHROM) %>%
-    count(SNV_TYPE = paste(REF, ALT, sep = ">")) %>%
+snp_class_stacked <- function(vcfTibble){
+  vcfTibble %<>% filter(TYPE == "SNP") %>% group_by(CHROM) %>%
+    count(SNP_TYPE = paste(REF, ALT, sep = ">")) %>%
     mutate(percentage = round(n *100/ sum(n), 2))
-  vcfTibble$SNV_TYPE <- with(vcfTibble, reorder(SNV_TYPE, percentage, FUN = sum))
+  vcfTibble$SNP_TYPE <- with(vcfTibble, reorder(SNP_TYPE, percentage, FUN = sum))
   
-  p <- ggplot(vcfTibble, aes(x = percentage, y = CHROM, fill = SNV_TYPE)) +
+  p <- ggplot(vcfTibble, aes(x = percentage, y = CHROM, fill = SNP_TYPE)) +
     geom_bar(stat = "identity", position = "stack") + 
-    labs(x = "Percentage", y = element_blank(), title= "SNV Types Distribution on Chromosomes") +
+    labs(x = "Percentage", y = element_blank(), title= "SNP Types Distribution on Chromosomes") +
     theme_minimal() +
     scale_fill_brewer(palette = "Set3") +
     theme(legend.position = "right",  plot.title = element_text(hjust = 0.5, size = 12, face = "bold"),
@@ -133,12 +129,11 @@ snv_class_stacked <- function(vcfTibble){
   
   p
 }
-
-snv_values <- function(vcfTibble){
+snp_values <- function(vcfTibble){
   values <- vcfTibble %>% group_by(TYPE) %>%
     summarise(count = n()) %>%
     mutate(percentage = round(count *100/ sum(count), 2)) %>%
-    filter(TYPE == "SNV")
+    filter(TYPE == "SNP")
 }
 
 
@@ -149,7 +144,6 @@ indel_values <- function(vcfTibble){
     mutate(percentage = round(count *100/ sum(count), 2)) %>%
     filter(TYPE == "INDEL")
 }
-
 indel_types <- function(vcfTibble){
   vcfTibble %<>% filter(TYPE == "INDEL")
   mutationCounts <- vcfTibble %>%
@@ -172,7 +166,6 @@ indel_types <- function(vcfTibble){
     scale_fill_brewer(palette = "Set3")
   p
 }
-
 indel_stacked <- function(vcfTibble){
   vcfTibble %<>% filter(TYPE == "INDEL") %>% group_by(CHROM, SUBTYPE) %>%
     summarise(count = n()) %>%
@@ -187,19 +180,27 @@ indel_stacked <- function(vcfTibble){
           legend.title = element_blank())
   p
 }
-
+indel_length_avg <- function(vcfTibble){
+  vcfTibble %<>% filter(TYPE == "INDEL") %>%
+    mutate(length = abs(nchar(ALT) - nchar(REF)))
+  round(mean(vcfTibble$length),2)
+}
+indel_length_med <- function(vcfTibble){
+  vcfTibble %<>% filter(TYPE == "INDEL") %>%
+    mutate(length = abs(nchar(ALT) - nchar(REF)))
+  median(vcfTibble$length)
+}
 indel_length <- function(vcfTibble){
   vcfTibble %<>% filter(TYPE == "INDEL") %>%
     mutate(length = abs(nchar(ALT) - nchar(REF)))
   
   p <- ggplot(vcfTibble, aes(x = length)) +
-    geom_histogram(binwidth = 1, position = "dodge") +
+    geom_histogram(binwidth = 1, position = "dodge", color="purple") +
     labs(x = "INDEL length (bp)", y = "Mutation Count") +
     theme_minimal() +
-    scale_fill_brewer(palette = "Set3")
+    theme(legend.position = "none",  plot.title = element_text(hjust = 0.5, size = 12, face = "bold"))
   p
 }
-
 indel_length_boxplot <- function(vcfTibble){
   vcfTibble %<>% filter(TYPE == "INDEL") %>%
     mutate(length = abs(nchar(ALT) - nchar(REF))) %>%
@@ -213,17 +214,96 @@ indel_length_boxplot <- function(vcfTibble){
   p
 }
 
-indel_length_avg <- function(vcfTibble){
-  vcfTibble %<>% filter(TYPE == "INDEL") %>%
-    mutate(length = abs(nchar(ALT) - nchar(REF)))
-  mean(vcfTibble$length)
+
+
+# Quality
+quality_avg <- function(vcfTibble){
+  round(mean(vcfTibble$QUAL),2)
+}
+quality_med <- function(vcfTibble){
+  median(vcfTibble$QUAL)
+}
+quality_bar <- function(vcfTibble){
+  p <- ggplot(vcfTibble, aes(x=QUAL)) +
+    geom_bar(color="lightgreen",alpha=0.5) +
+    labs(title = "Quality across the file", 
+         x = "Position", 
+         y="Quality") +
+    theme_minimal() +
+    theme(legend.position = "none",  plot.title = element_text(hjust = 0.5, size = 12, face = "bold"))
+  p
+}
+quality_on_chroms <- function(vcfTibble){
+  p <- ggplot(vcfTibble, aes(x=CHROM, y=QUAL)) +
+    geom_violin(color="orange") +
+    labs(title = "Quality across the chromosomes",
+         x = element_blank(),
+         y = "Quality") +
+    theme_minimal() +
+    theme(legend.position = "none",  plot.title = element_text(hjust = 0.5, size = 12, face = "bold"),
+          axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+  p
 }
 
-indel_length_med <- function(vcfTibble){
-  vcfTibble %<>% filter(TYPE == "INDEL") %>%
-    mutate(length = abs(nchar(ALT) - nchar(REF)))
-  median(vcfTibble$length)
+
+# Allele Frequency
+allele_freq_avg <- function(vcfTibble){
+  round(mean(vcfTibble$AF),2)
 }
+allele_freq_med <- function(vcfTibble){
+  median(vcfTibble$AF)
+}
+allele_freq_hexbin <- function(vcfTibble){
+  p <- ggplot(vcfTibble, aes(x=seq_along(AF), y = AF)) +
+    geom_hex() +
+    labs(title = "Allele Frequency across the file", 
+         x = "Position", 
+         y="Allele Frequency") +
+    theme_minimal() +
+    theme(legend.position = "none",  plot.title = element_text(hjust = 0.5, size = 12, face = "bold"))
+  p
+}
+allele_freq_on_chroms <- function(vcfTibble){
+  p <- ggplot(vcfTibble, aes(x=AF, y=CHROM)) +
+      geom_density_ridges(fill="lightpink") +
+      labs(title = "Allele Frequency across the chromosomes") +
+      theme_minimal() +
+      theme(legend.position = "none",  plot.title = element_text(hjust = 0.5, size = 12, face = "bold"))
+  p
+}
+
+
+# Read Depth
+read_depth_avg <- function(vcfTibble){
+  round(mean(vcfTibble$DP),2)
+}
+read_depth_med <- function(vcfTibble){
+  median(vcfTibble$DP)
+}
+read_depth_density <- function(vcfTibble){
+  p <- ggplot(vcfTibble, aes(x=DP)) +
+    geom_bar(color="lightgreen",alpha=0.5) +
+    labs(title = "Read Depth across the file", 
+         x = "Position", 
+         y="Read Depth") +
+    theme_minimal() +
+    theme(legend.position = "none",  plot.title = element_text(hjust = 0.5, size = 12, face = "bold"))
+  p
+}
+read_depth_on_chroms <- function(vcfTibble){
+  p <- ggplot(vcfTibble, aes(x=CHROM, y=DP)) +
+    geom_violin(color="orange") +
+    labs(title = "Read depth across chromosomes",
+         x = "Chromosomes",
+         y = "Read depth") +
+    theme_minimal() +
+    theme(legend.position = "none",  plot.title = element_text(hjust = 0.5, size = 12, face = "bold"))
+  p
+}
+
+
+
+
 
 
 

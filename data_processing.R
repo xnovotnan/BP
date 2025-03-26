@@ -24,7 +24,7 @@ prepare_data <- function(vcf_file){
         GT = str_split(VALUES, ":") %>% map_chr(~ .x[1]),
         AD = str_split(VALUES, ":") %>% map_chr(~ .x[2]) %>% str_split(",") %>% map_int(~ as.integer(.x[1])),
         DP = str_split(VALUES, ":") %>% map_int(~ as.integer(.x[3])),
-        TYPE = ifelse(nchar(REF) == 1 & nchar(ALT) == 1,"SNV", "INDEL")) %>%
+        TYPE = ifelse(nchar(REF) == 1 & nchar(ALT) == 1,"SNP", "INDEL")) %>%
       filter(QUAL > 200, 
              GT %in% c("1|1", "0|1", "1|0", "1/1", "0/1", "1/0"),
              DP>0,
@@ -33,7 +33,7 @@ prepare_data <- function(vcf_file){
     purines <- c("A", "G")
     pyrimidines <- c("C", "T")
     vcf_tibble %<>% mutate(
-      SUBTYPE = ifelse(TYPE == "SNV", 
+      SUBTYPE = ifelse(TYPE == "SNP", 
                        ifelse((REF %in% purines & ALT %in% purines) | (REF %in% pyrimidines & ALT %in% pyrimidines), "Transition", "Transversion"), 
                        ifelse(nchar(REF) > nchar(ALT),"Deletion", "Insertion")),
       AF = round(1 - AD/DP, 2)
@@ -122,7 +122,7 @@ plot_summary <- function(data){
 #       GT = str_split(VALUES, ":") %>% map_chr(~ .x[1]),
 #       AD = str_split(VALUES, ":") %>% map_chr(~ .x[2]) %>% str_split(",") %>% map_int(~ as.integer(.x[1])),
 #       DP = str_split(VALUES, ":") %>% map_int(~ as.integer(.x[3])),
-#       TYPE = ifelse(nchar(REF) == 1 & nchar(ALT) == 1,"SNV", "INDEL")) %>%
+#       TYPE = ifelse(nchar(REF) == 1 & nchar(ALT) == 1,"SNP", "INDEL")) %>%
 #     filter(QUAL > 200, 
 #            GT %in% c("1|1", "0|1", "1|0", "1/1", "0/1", "1/0"),
 #            DP>0,
@@ -130,7 +130,7 @@ plot_summary <- function(data){
 #   purines <- c("A", "G")
 #   pyrimidines <- c("C", "T")
 #   vcf_tibble %<>% mutate(
-#     SUBTYPE = ifelse(TYPE == "SNV", 
+#     SUBTYPE = ifelse(TYPE == "SNP", 
 #                      ifelse((REF %in% purines & ALT %in% purines) | (REF %in% pyrimidines & ALT %in% pyrimidines), "Transition", "Transversion"), 
 #                      ifelse(nchar(REF) > nchar(ALT),"Deletion", "Insertion")),
 #     AF = round(1 - AD/DP, 2)
