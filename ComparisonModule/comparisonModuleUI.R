@@ -1,9 +1,6 @@
 library(shiny)
-library(bslib)
 library(shinyWidgets)
-library(DT)
 library(shinyFiles)
-library(tinytex)
 
 # UI komponent pre QUALIMAP porovnanie
 comparisonModuleUI <- function(id) {

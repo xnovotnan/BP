@@ -1,25 +1,29 @@
 library(shiny)
-library(bslib)
 library(shinyWidgets)
-library(DT)
-library(shinyFiles)
 library(tinytex)
-source("data_processing.R")
 source(file.path("VCFModule", "mutationAnalysis.R"))
-options(shiny.maxRequestSize = 2000 * 1024^2)
 
-
-# Serverová časť modulu pre Qualimap analýzu
-vcfModuleServer <- function(id, processedData, chromSelectVal) {
+vcfModuleServer <- function(id) {
   moduleServer(id, function(input, output, session) {
+    processedData <- reactive({
+      req(input$vcfFile)
+      withProgress(message = "Preprocessing file...", value = 0, {
+        prepare_data(input$vcfFile$datapath)
+      })
+    })
+    observe({
+      data <- processedData()
+      req(data)
+      chroms <- unique(data$CHROM)
+      chromChoices <- c("All", as.character(chroms))
+      updateSelectInput(session, "chrom_select", choices = chromChoices, selected = "All")
+    })
     
     # Mutation counts
     output$mutation_donut <- renderPlot({
       data <- processedData()
       req(data)
-      chromSelect <- chromSelectVal()
-      if (chromSelect != "All") {data %<>% filter(CHROM == chromSelect)}
-      
+      if (input$chrom_select != "All") {data %<>% filter(CHROM == input$chrom_select)}
       mutation_donut(data, input$analysisLevel == "Subtypes")
     })
     output$mutation_distribution <- renderPlot({
@@ -32,8 +36,7 @@ vcfModuleServer <- function(id, processedData, chromSelectVal) {
     output$snp_value <- renderText({
       data <- processedData()
       req(data)
-      chromSelect <- chromSelectVal()
-      if(chromSelect != "All"){data %<>% filter(CHROM == chromSelect)}
+      if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
       values <- snp_value(data)
       result <- sprintf("SNP Count: %s (%s %%)", label_comma()(values$count), values$percentage)
       
@@ -41,8 +44,7 @@ vcfModuleServer <- function(id, processedData, chromSelectVal) {
     output$snp_types_donut <- renderPlot({
       data <- processedData()
       req(data)
-      chromSelect <- chromSelectVal()
-      if(chromSelect != "All"){data %<>% filter(CHROM == chromSelect)}
+      if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
       snp_types_donut(data)
     })
     output$snp_class_stacked <- renderPlot({
@@ -53,15 +55,13 @@ vcfModuleServer <- function(id, processedData, chromSelectVal) {
     output$snp_class_boxplot <- renderPlot({
       data <- processedData()
       req(data)
-      chromSelect <- chromSelectVal()
-      if(chromSelect != "All"){data %<>% filter(CHROM == chromSelect)}
+      if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
       snp_class_boxplot(data)
     })
     output$snp_class_barplot <- renderPlot({
       data <- processedData()
       req(data)
-      chromSelect <- chromSelectVal()
-      if(chromSelect != "All"){data %<>% filter(CHROM == chromSelect)}
+      if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
       snp_class_barplot(data)
     })
     
@@ -69,8 +69,7 @@ vcfModuleServer <- function(id, processedData, chromSelectVal) {
     output$indel_values <- renderText({
       data <- processedData()
       req(data)
-      chromSelect <- chromSelectVal()
-      if(chromSelect != "All"){data %<>% filter(CHROM == chromSelect)}
+      if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
       values <- indel_values(data)
       result <- sprintf("INDEL Count: %s (%s %%)", label_comma()(values$count), values$percentage)
       
@@ -78,8 +77,7 @@ vcfModuleServer <- function(id, processedData, chromSelectVal) {
     output$indel_types <- renderPlot({
       data <- processedData()
       req(data)
-      chromSelect <- chromSelectVal()
-      if(chromSelect != "All"){data %<>% filter(CHROM == chromSelect)}
+      if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
       indel_types(data)
     })
     output$indel_stacked <- renderPlot({
@@ -90,31 +88,27 @@ vcfModuleServer <- function(id, processedData, chromSelectVal) {
     output$indel_length_avg <- renderText({
       data <- processedData()
       req(data)
-      chromSelect <- chromSelectVal()
-      if(chromSelect != "All"){data %<>% filter(CHROM == chromSelect)}
+      if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
       avg <- indel_length_avg(data)
       sprintf("Mean INDEL length: %s", avg)
     })
     output$indel_length_med <- renderText({
       data <- processedData()
       req(data)
-      chromSelect <- chromSelectVal()
-      if(chromSelect != "All"){data %<>% filter(CHROM == chromSelect)}
+      if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
       med <- indel_length_med(data)
       sprintf("Median INDEL length: %s", med)
     })
     output$indel_length <- renderPlot({
       data <- processedData()
       req(data)
-      chromSelect <- chromSelectVal()
-      if(chromSelect != "All"){data %<>% filter(CHROM == chromSelect)}
+      if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
       indel_length(data)
     })
     output$indel_length_boxplot <- renderPlot({
       data <- processedData()
       req(data)
-      chromSelect <- chromSelectVal()
-      if(chromSelect != "All"){data %<>% filter(CHROM == chromSelect)}
+      if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
       indel_length_boxplot(data)
     })
     
@@ -122,24 +116,21 @@ vcfModuleServer <- function(id, processedData, chromSelectVal) {
     output$qual_avg <- renderText({
       data <- processedData()
       req(data)
-      chromSelect <- chromSelectVal()
-      if(chromSelect != "All"){data %<>% filter(CHROM == chromSelect)}
+      if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
       avg <- quality_avg(data)
       sprintf("Mean Quality: %s", avg)
     })
     output$qual_med <- renderText({
       data <- processedData()
       req(data)
-      chromSelect <- chromSelectVal()
-      if(chromSelect != "All"){data %<>% filter(CHROM == chromSelect)}
+      if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
       med <- quality_med(data)
       sprintf("Median Quality: %s", med)
     })
     output$quality_bar <- renderPlot({
       data <- processedData()
       req(data)
-      chromSelect <- chromSelectVal()
-      if(chromSelect != "All"){data %<>% filter(CHROM == chromSelect)}
+      if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
       quality_bar(data)
     })
     output$quality_on_chroms <- renderPlot({
@@ -152,24 +143,21 @@ vcfModuleServer <- function(id, processedData, chromSelectVal) {
     output$allele_freq_avg <- renderText({
       data <- processedData()
       req(data)
-      chromSelect <- chromSelectVal()
-      if(chromSelect != "All"){data %<>% filter(CHROM == chromSelect)}
+      if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
       avg <- allele_freq_avg(data)
       sprintf("Mean Allele Frequency: %s", avg)
     })
     output$allele_freq_med <- renderText({
       data <- processedData()
       req(data)
-      chromSelect <- chromSelectVal()
-      if(chromSelect != "All"){data %<>% filter(CHROM == chromSelect)}
+      if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
       med <- allele_freq_med(data)
       sprintf("Median Allele Frequency: %s", med)
     })
     output$allele_freq_hexbin <- renderPlot({
       data <- processedData()
       req(data)
-      chromSelect <- chromSelectVal()
-      if(chromSelect != "All"){data %<>% filter(CHROM == chromSelect)}
+      if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
       allele_freq_hexbin(data)
     })
     output$allele_freq_on_chroms <- renderPlot({
@@ -182,24 +170,21 @@ vcfModuleServer <- function(id, processedData, chromSelectVal) {
     output$read_depth_avg <- renderText({
       data <- processedData()
       req(data)
-      chromSelect <- chromSelectVal()
-      if(chromSelect != "All"){data %<>% filter(CHROM == chromSelect)}
+      if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
       avg <- read_depth_avg(data)
       sprintf("Mean Read Depth: %s", avg)
     })
     output$read_depth_med <- renderText({
       data <- processedData()
       req(data)
-      chromSelect <- chromSelectVal()
-      if(chromSelect != "All"){data %<>% filter(CHROM == chromSelect)}
+      if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
       med <- read_depth_med(data)
       sprintf("Median Read Depth: %s", med)
     })
     output$read_depth_density <- renderPlot({
       data <- processedData()
       req(data)
-      chromSelect <- chromSelectVal()
-      if(chromSelect != "All"){data %<>% filter(CHROM == chromSelect)}
+      if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
       read_depth_density(data)
     })
     output$read_depth_on_chroms <- renderPlot({
@@ -220,7 +205,7 @@ vcfModuleServer <- function(id, processedData, chromSelectVal) {
                                 "Select Analysis Level:",
                                 choices = c("Types", "Subtypes"), 
                                 selected = "Types")),
-          column(6, selectInput(inputId = "chrom_select", 
+          column(6, selectInput(inputId = ns("chrom_select"), 
                                 label = "Select Chromosome:", 
                                 choices = c("All"), 
                                 selected = "All"))

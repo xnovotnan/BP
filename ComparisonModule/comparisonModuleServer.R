@@ -1,16 +1,13 @@
 library(shiny)
-library(bslib)
 library(shinyWidgets)
-library(DT)
 library(shinyFiles)
 library(tinytex)
 source(file.path("ComparisonModule", "sampleComparison.R"))
-options(shiny.maxRequestSize = 2000 * 1024^2)
 
 # Serverová časť modulu pre Qualimap porovnanie
 comparisonModuleServer <- function(id) {
   moduleServer(id, function(input, output, session) {
-    volumes <- c(TU = "~/Documents/BP/data/whitespring.qualimap", Home = path.expand("~"))
+    volumes <- c(TUTUTUUTUTUUT = "~/Documents/BP/data/whitespring.qualimap", Home = path.expand("~"))
     shinyDirChoose(input, "comparisonFolder", roots = volumes, session = session)
 
     comparisonFolderPath <- reactive({

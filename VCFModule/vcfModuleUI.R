@@ -1,16 +1,13 @@
 library(shiny)
-library(bslib)
 library(shinyWidgets)
-library(DT)
 library(shinyFiles)
-library(tinytex)
+options(shiny.maxRequestSize = 2000 * 1024^2)
 
-# UI komponent pre VCF analýzu
 vcfModuleUI <- function(id) {
   ns <- NS(id)
   tagList(
     h3("Variant Summary per file"),
-    fileInput(inputId = "vcfFile", 
+    fileInput(inputId = ns("vcfFile"), 
               label = "Select VCF File", 
               multiple = FALSE, 
               accept = ".vcf"),

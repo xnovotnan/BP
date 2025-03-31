@@ -1,9 +1,6 @@
 library(tidyverse)
 library(magrittr)
-library(patchwork)
-library(ggridges)
 library(fmsb)
-library(RColorBrewer)
 library(scales)
 options(scipen = 999)
 

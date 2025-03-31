@@ -1,11 +1,8 @@
 library(shiny)
-library(bslib)
 library(shinyWidgets)
-library(DT)
 library(shinyFiles)
 library(tinytex)
 source(file.path("QualimapModule", "qualimapAnalysis.R"))
-options(shiny.maxRequestSize = 2000 * 1024^2)
 
 # Serverová časť modulu pre Qualimap analýzu
 qualimapModuleServer <- function(id) {
@@ -207,8 +204,8 @@ qualimapModuleServer <- function(id) {
           column(6, verbatimTextOutput(ns("num_of_sequenced_bases"))),
           column(6, verbatimTextOutput(ns("num_of_duplicated_reads"))),
           column(6, verbatimTextOutput(ns("mean_mapping_quality"))),
-          column(6, imageOutput(ns("duplication_rate_histogram"))),
-          column(6, imageOutput(ns("mapping_quality_histogram")))
+          column(6, imageOutput(ns("duplication_rate_histogram"), height = "500px")),
+          column(6, imageOutput(ns("mapping_quality_histogram"), height = "500px"))
         ),
         tags$hr(),
         h4("Insert Size"),
@@ -216,8 +213,9 @@ qualimapModuleServer <- function(id) {
           column(6, verbatimTextOutput(ns("mean_insert_size"))),
           column(6, verbatimTextOutput(ns("median_insert_size"))),
           column(12, verbatimTextOutput(ns("std_insert_size"))),
-          column(6, imageOutput(ns("insert_size_across_reference"))),
-          column(6, imageOutput(ns("insert_size_histogram")))
+          column(6, imageOutput(ns("insert_size_across_reference"), height = "500px")),
+          column(6, imageOutput(ns("insert_size_histogram"), height = "500px"))
+          
         ),
         tags$hr(),
         h4("Data Coverage"),
@@ -231,8 +229,8 @@ qualimapModuleServer <- function(id) {
         h4("ACTG Content"),
         fluidRow(
           column(12, verbatimTextOutput(ns("gc_percentage"))),
-          column(6, plotOutput(ns("actg_content_barplot"))),
-          column(6, imageOutput(ns("cg_content_distribution")))
+          column(6, plotOutput(ns("actg_content_barplot"), height = "500px")),
+          column(6, imageOutput(ns("cg_content_distribution"), height = "500px"))
         ),
         tags$hr(),
         downloadButton(ns("download_qualimap_pdf"), "Download PDF Report")

@@ -1,7 +1,5 @@
 library(tidyverse)
 library(magrittr)
-library(patchwork)
-library(ggridges)
 options(scipen = 999)
 
 # -----------------------------------
