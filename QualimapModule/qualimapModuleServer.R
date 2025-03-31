@@ -8,15 +8,28 @@ source(file.path("QualimapModule", "qualimapAnalysis.R"))
 options(shiny.maxRequestSize = 2000 * 1024^2)
 
 # Serverová časť modulu pre Qualimap analýzu
-qualimapModuleServer <- function(id, qualimapFolderPath) {
+qualimapModuleServer <- function(id) {
   moduleServer(id, function(input, output, session) {
+    volumes <- c(Home = path.expand("~"), Desktop = "~/Desktop", Documents = "~/Documents")
+    shinyDirChoose(input, "qualimapFolder", roots = volumes, session = session)
+    
+    qualimapFolderPath <- reactive({
+      req(typeof(input$qualimapFolder) != "integer")
+      parseDirPath(volumes, input$qualimapFolder)
+    })
     qualimapData <- reactive({
       folderPath <- qualimapFolderPath()
       req(folderPath)
       process_qualimap(folderPath)
     })
+    
+    output$selectedFolderPath <- renderText({
+      folderPath <- qualimapFolderPath()
+      req(folderPath)
+      paste(folderPath)
+    })
 
-    # REFERENCE
+    # Reference
     output$num_of_bases <- renderText({
       paste("Number of Bases:", qualimapData()["number of bases"])
     })
@@ -25,7 +38,7 @@ qualimapModuleServer <- function(id, qualimapFolderPath) {
     })
     
     
-    # READ STATISTICS
+    # Read Statistics
     output$num_of_reads <- renderText({
       paste("Number of Reads:", qualimapData()["number of reads"])
     })
@@ -55,9 +68,6 @@ qualimapModuleServer <- function(id, qualimapFolderPath) {
            contentType = "image/png",
            width = "100%")
     }, deleteFile = FALSE)
-    
-    
-    # MAPPING QUALITY
     output$mean_mapping_quality <- renderText({
       paste("Mean Mapping Quality:", qualimapData()["mean mapping quality"])
     })
@@ -71,7 +81,7 @@ qualimapModuleServer <- function(id, qualimapFolderPath) {
     }, deleteFile = FALSE)
     
     
-    # INSERT SIZE
+    # Insert Size
     output$mean_insert_size <- renderText({
       paste("Mean Insert Size:", qualimapData()["mean insert size"])
     })
@@ -99,7 +109,7 @@ qualimapModuleServer <- function(id, qualimapFolderPath) {
     }, deleteFile = FALSE)
     
     
-    # DATA COVERAGE ANALYSIS
+    # Data Coverage
     output$mean_coverage <- renderText({
       paste("Mean Coverage:", qualimapData()["mean coverageData"])
     })
@@ -118,7 +128,7 @@ qualimapModuleServer <- function(id, qualimapFolderPath) {
     })
     
     
-    # ACTG CONTENT
+    # ACTG Content
     output$gc_percentage <- renderText({
       paste("GC Percentage:", qualimapData()["GC percentage"])
     })
@@ -139,7 +149,7 @@ qualimapModuleServer <- function(id, qualimapFolderPath) {
 
     # PDF REPORT
     output$download_qualimap_pdf <- downloadHandler(
-      filename = "report.pdf",
+      filename = "qualimapReport.pdf",
       content = function(file) {
         tempReport <- file.path("QualimapModule", "qualimapReport.Rmd") 
         file.copy("qualimapReport.Rmd", tempReport, overwrite = TRUE)

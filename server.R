@@ -4,10 +4,9 @@ library(DT)
 library(shinyFiles)
 library(tinytex)
 source("data_processing.R")
-source(file.path("VCFModule", "mutationAnalysis.R"))
 source(file.path("VCFModule", "vcfModuleServer.R"))
-source(file.path("QualimapModule", "qualimapAnalysis.R"))
 source(file.path("QualimapModule", "qualimapModuleServer.R"))
+source(file.path("ComparisonModule", "comparisonModuleServer.R"))
 options(shiny.maxRequestSize = 2000 * 1024^2)
 
 # -----------------------------------
@@ -37,19 +36,6 @@ server <- function(input, output, session) {
   chrom_select_val <- reactiveVal("All")
   observe({
     chrom_select_val(input$chrom_select)
-  })
-  
-  # SELECT QUALIMAP FOLDER
-  volumes <- c(Home = path.expand("~"), Desktop = "~/Desktop", Documents = "~/Documents")
-  shinyDirChoose(input, "qualimapFolder", roots = volumes, session = session)
-  qualimapFolderPath <- reactive({
-    req(typeof(input$qualimapFolder) != "integer")
-    parseDirPath(volumes, input$qualimapFolder)
-  })
-  output$selectedFolderPath <- renderText({
-    folderPath <- qualimapFolderPath()
-    req(folderPath)
-    paste(folderPath)
   })
 
   
@@ -98,12 +84,14 @@ server <- function(input, output, session) {
   ),selection = "none")
   
   
-  
   # ---------- MUTATION ANALYSIS WINDOW ----------
   vcfModuleServer("vcf", processedData, chrom_select_val)
   
   # ---------- QUALIMAP ANALYSIS ----------
-  qualimapModuleServer("qualimap", qualimapFolderPath)
+  qualimapModuleServer("qualimap")
+  
+  # ---------- SAMPLE COMPARISON ----------
+  comparisonModuleServer("comparison")
   
 }
 

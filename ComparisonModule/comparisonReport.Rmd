@@ -1,0 +1,74 @@
+---
+title: "Comparison Analysis Report"
+output: pdf_document
+params:
+  bases_comparison: "bases_comparison.png"
+  contig_comparison: "contig_comparison.png"
+  reads_comparison: "reads_comparison.png"
+  mapped_paired_reads_comparison: "mapped_paired_reads_comparison.png"
+  mapped_paired_reads_singletons_comparison: "mapped_paired_reads_singletons_comparison.png" 
+  mapped_bases_comparison: "mapped_bases_comparison.png"
+  duplicated_reads_comparison: "duplicated_reads_comparison.png"
+  mapping_quality_comparison: "mapping_quality_comparison.png"
+  insert_size_comparison: "insert_size_comparison.png"
+  coverage_comparison: "coverage_comparison.png"
+  gc_percentage_comparison: "gc_percentage_comparison.png"
+  actg_content_comparison: "actg_content_comparison.png"
+---
+
+## Reference
+```{r echo=FALSE, out.width="70%"}
+print(params$bases_comparison)
+```
+
+```{r echo=FALSE, out.width="70%"}
+print(params$contig_comparison)
+```
+
+## Read Statistics
+```{r echo=FALSE, fig.width=10, fig.height=5}
+print(params$reads_comparison)
+```
+
+```{r echo=FALSE, out.width="70%"}
+print(params$mapped_paired_reads_comparison)
+```
+
+```{r echo=FALSE, out.width="70%"}
+print(params$mapped_paired_reads_singletons_comparison)
+```
+
+```{r echo=FALSE, fig.width=10, fig.height=5}
+print(params$mapped_bases_comparison)
+```
+
+### Duplication Rate Histogram:
+```{r echo=FALSE, out.width="70%"}
+print(params$duplicated_reads_comparison)
+```
+
+### Mapping Quality Histogram:
+```{r echo=FALSE, out.width="70%"}
+print(params$mapping_quality_comparison)
+```
+
+## Insert Size
+```{r echo=FALSE, out.width="70%"}
+print(params$insert_size_comparison)
+```
+
+## Data Coverage
+```{r echo=FALSE, out.width="70%"}
+print(params$coverage_comparison)
+```
+
+## ACTG Content
+```{r echo=FALSE, out.width="70%"}
+print(params$actg_content_barplot)
+```
+
+### CG content distribution:
+```{r echo=FALSE, out.width="70%"}
+print(params$gc_percentage_comparison)
+```
+

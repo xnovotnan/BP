@@ -1,9 +1,7 @@
 library(tidyverse)
 library(magrittr)
 library(patchwork)
-library(plotly)
 library(ggridges)
-library(ComplexHeatmap)
 theme_set(theme_minimal() + 
             theme(
               plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
@@ -19,7 +17,7 @@ options(scipen = 999)
 get_genome_results <- function(qualimap_folder){
   file_path <- file.path(qualimap_folder, "genome_results.txt")
   if (!file.exists(file_path)) {
-    stop("File genome_results.txt does not found in this folder.")
+    stop("File genome_results.txt not found in this folder.")
   }
   readLines(file_path)
 }

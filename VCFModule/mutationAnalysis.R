@@ -89,7 +89,6 @@ snp_class_barplot <- function(vcfTibble){
     theme(plot.title = element_text(hjust = 0.5, size = 12, face = "bold")) +
     geom_text(aes(x = percentage/2, label = label), size = 3, color = "black")+
     scale_fill_brewer(palette = "Set3")
-  
   p
 }
 snp_class_boxplot <- function(vcfTibble){
