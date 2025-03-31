@@ -26,7 +26,7 @@ qualimapModuleServer <- function(id) {
     output$selectedFolderPath <- renderText({
       folderPath <- qualimapFolderPath()
       req(folderPath)
-      paste(folderPath)
+      paste("Selected folder: ",folderPath)
     })
 
     # Reference
@@ -192,7 +192,6 @@ qualimapModuleServer <- function(id) {
       req(qualimapFolderPath())
       ns <- NS(id)
       tagList(
-        h3("Qualimap Statistics Summary"),
         h4("Reference"),
         fluidRow(
           column(6, verbatimTextOutput(ns("num_of_bases"))),
@@ -211,6 +210,7 @@ qualimapModuleServer <- function(id) {
           column(6, imageOutput(ns("duplication_rate_histogram"))),
           column(6, imageOutput(ns("mapping_quality_histogram")))
         ),
+        tags$hr(),
         h4("Insert Size"),
         fluidRow(
           column(6, verbatimTextOutput(ns("mean_insert_size"))),
@@ -219,6 +219,7 @@ qualimapModuleServer <- function(id) {
           column(6, imageOutput(ns("insert_size_across_reference"))),
           column(6, imageOutput(ns("insert_size_histogram")))
         ),
+        tags$hr(),
         h4("Data Coverage"),
         fluidRow(
           column(6, verbatimTextOutput(ns("mean_coverage"))),
@@ -226,12 +227,14 @@ qualimapModuleServer <- function(id) {
           column(6, plotOutput(ns("qualimap_coverage"))),
           column(6, plotOutput(ns("qualimap_coverage_pc")))
         ),
+        tags$hr(),
         h4("ACTG Content"),
         fluidRow(
           column(12, verbatimTextOutput(ns("gc_percentage"))),
           column(6, plotOutput(ns("actg_content_barplot"))),
           column(6, imageOutput(ns("cg_content_distribution")))
         ),
+        tags$hr(),
         downloadButton(ns("download_qualimap_pdf"), "Download PDF Report")
       )
     })

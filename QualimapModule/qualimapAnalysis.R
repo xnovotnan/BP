@@ -2,11 +2,6 @@ library(tidyverse)
 library(magrittr)
 library(patchwork)
 library(ggridges)
-theme_set(theme_minimal() + 
-            theme(
-              plot.title = element_text(hjust = 0.5, size = 10, face = "bold"),
-              legend.position = "bottom"
-            ))
 options(scipen = 999)
 
 # -----------------------------------
@@ -42,7 +37,6 @@ process_qualimap <- function(qualimap_folder) {
   results
 }
 
-
 # Funkcia process_qualimap_coverage sluzi na spracovanie coverage dat do grafu
 process_qualimap_coverage <- function(qualimap_folder){
   lines <- get_genome_results(qualimap_folder)
@@ -65,7 +59,15 @@ process_qualimap_coverage <- function(qualimap_folder){
     geom_bar(stat = "identity", fill = "skyblue", alpha = 0.5) +
     geom_line(color = "blue", size = 1) + 
     geom_point(color = "blue", size = 2) + 
-    labs(x = "Coverage (X)", y = "Percentage (%)", title = "Data Coverage")
+    labs(x = "Coverage (X)", y = "Percentage (%)", title = "Data Coverage")+
+    theme_minimal() + 
+    theme(
+      plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
+      axis.text.x = element_text(size = 12),
+      axis.text.y = element_text(size = 12),
+      axis.title.x = element_text(size = 12),
+      axis.title.y = element_text(size = 12)
+      )
   p
 }
 
@@ -84,7 +86,14 @@ process_qualimap_coverage_pc <- function(qualimap_folder) {
     geom_line(color = "salmon", size = 1) +
     geom_point(color = "salmon", size = 2) +
     labs(title = "Mean Coverage Across Chromosomes", x = "Chromosome", y = "Mean Coverage")+
-    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+    theme_minimal() + 
+    theme(
+      plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
+      axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1, size = 12),
+      axis.text.y = element_text(size = 12),
+      axis.title.x = element_text(size = 12),
+      axis.title.y = element_text(size = 12))
   p
 }
 
@@ -106,7 +115,15 @@ process_ACTG_content <- function(data){
   
   p <- ggplot(df, aes(x = Base, y = Percentage)) +
     geom_bar(stat = "identity", fill = "lightgreen", alpha=0.5) +
-    labs(title = "Base Pair Counts (Percentage)", x = "Bases", y = "Percentage (%)")
+    labs(title = "Base Pair Counts (Percentage)", x = "Bases", y = "Percentage (%)")+
+    theme_minimal() + 
+    theme(
+      plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
+      axis.text.x = element_text(size = 12),
+      axis.text.y = element_text(size = 12),
+      axis.title.x = element_text(size = 12),
+      axis.title.y = element_text(size = 12)
+    )
   p
 }
 

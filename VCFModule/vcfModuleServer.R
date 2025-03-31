@@ -20,54 +20,49 @@ vcfModuleServer <- function(id, processedData, chromSelectVal) {
       chromSelect <- chromSelectVal()
       if (chromSelect != "All") {data %<>% filter(CHROM == chromSelect)}
       
-      mutation_donut(data, input$analysisLevel == "Subtypes", input$valueType)
+      mutation_donut(data, input$analysisLevel == "Subtypes")
     })
     output$mutation_distribution <- renderPlot({
       data <- processedData()
       req(data)
-      chromSelect <- chromSelectVal()
-      
-      if(chromSelect != "All"){data %<>% filter(CHROM == chromSelect)}
-      mutation_distribution(data, input$analysisLevel == "Subtypes", input$valueType)
+      mutation_distribution(data, input$analysisLevel == "Subtypes")
     })
     
     # SNP Analysis
-    output$snp_values <- renderText({
+    output$snp_value <- renderText({
       data <- processedData()
       req(data)
       chromSelect <- chromSelectVal()
       if(chromSelect != "All"){data %<>% filter(CHROM == chromSelect)}
-      values <- snp_values(data)
+      values <- snp_value(data)
       result <- sprintf("SNP Count: %s (%s %%)", label_comma()(values$count), values$percentage)
       
     })
-    output$snp_types <- renderPlot({
+    output$snp_types_donut <- renderPlot({
       data <- processedData()
       req(data)
       chromSelect <- chromSelectVal()
       if(chromSelect != "All"){data %<>% filter(CHROM == chromSelect)}
-      snp_types(data)
+      snp_types_donut(data)
     })
-    output$snp_class <- renderPlot({
+    output$snp_class_stacked <- renderPlot({
       data <- processedData()
       req(data)
-      chromSelect <- chromSelectVal()
-      if(chromSelect != "All"){data %<>% filter(CHROM == chromSelect)}
-      snp_class_barplot(data)
+      snp_class_stacked(data)
     })
-    output$snp_class_combined <- renderPlot({
+    output$snp_class_boxplot <- renderPlot({
       data <- processedData()
       req(data)
       chromSelect <- chromSelectVal()
       if(chromSelect != "All"){data %<>% filter(CHROM == chromSelect)}
       snp_class_boxplot(data)
     })
-    output$snp_class_stacked <- renderPlot({
+    output$snp_class_barplot <- renderPlot({
       data <- processedData()
       req(data)
       chromSelect <- chromSelectVal()
       if(chromSelect != "All"){data %<>% filter(CHROM == chromSelect)}
-      snp_class_stacked(data)
+      snp_class_barplot(data)
     })
     
     # INDEL Analysis
@@ -90,8 +85,6 @@ vcfModuleServer <- function(id, processedData, chromSelectVal) {
     output$indel_stacked <- renderPlot({
       data <- processedData()
       req(data)
-      chromSelect <- chromSelectVal()
-      if(chromSelect != "All"){data %<>% filter(CHROM == chromSelect)}
       indel_stacked(data)
     })
     output$indel_length_avg <- renderText({
@@ -215,5 +208,74 @@ vcfModuleServer <- function(id, processedData, chromSelectVal) {
       read_depth_on_chroms(data)
     })
     
+    
+    # COMBINED VCF ANALYSIS
+    output$vcfModuleAnalysis <- renderUI({
+      req(processedData())
+      ns <- NS(id)
+      tagList(
+        h5("Filters"),
+        fluidRow(
+          column(6, selectInput(ns("analysisLevel"), 
+                                "Select Analysis Level:",
+                                choices = c("Types", "Subtypes"), 
+                                selected = "Types")),
+          column(6, selectInput(inputId = "chrom_select", 
+                                label = "Select Chromosome:", 
+                                choices = c("All"), 
+                                selected = "All"))
+        ),
+        h4("Mutation counts"),
+        fluidRow(
+          column(6, plotOutput(ns("mutation_donut"))),
+          column(6, plotOutput(ns("mutation_distribution")))
+        ),
+        tags$hr(),
+        h4("Single Nucleotide Polymorphism (SNP) Analysis"),
+        fluidRow(
+          column(12, verbatimTextOutput(ns("snp_value"))),
+          column(4, plotOutput(ns("snp_types_donut"))),
+          column(8, plotOutput(ns("snp_class_stacked"))),
+          tags$hr(),
+          column(7, plotOutput(ns("snp_class_boxplot"))),
+          column(5, plotOutput(ns("snp_class_barplot")))
+        ),
+        tags$hr(),
+        h4("Insertion and Deletion (INDEL) Analysis"),
+        fluidRow(
+          column(12, verbatimTextOutput(ns("indel_values"))),
+          column(4, plotOutput(ns("indel_types"))),
+          column(8, plotOutput(ns("indel_stacked"))),
+          column(6, verbatimTextOutput(ns("indel_length_avg"))),
+          column(6, verbatimTextOutput(ns("indel_length_med"))),
+          column(8, plotOutput(ns("indel_length"))),
+          column(4, plotOutput(ns("indel_length_boxplot")))
+        ),
+        tags$hr(),
+        h4("Quality Analysis"),
+        fluidRow(
+          column(6, verbatimTextOutput(ns("qual_avg"))),
+          column(6, verbatimTextOutput(ns("qual_med"))),
+          column(6, plotOutput(ns("quality_bar"))),
+          column(6, plotOutput(ns("quality_on_chroms")))
+        ),
+        tags$hr(),
+        h4("Allele Frequency Analysis"),
+        fluidRow(
+          column(6, verbatimTextOutput(ns("allele_freq_avg"))),
+          column(6, verbatimTextOutput(ns("allele_freq_med"))),
+          column(6, plotOutput(ns("allele_freq_hexbin"))),
+          column(6, plotOutput(ns("allele_freq_on_chroms")))
+        ),
+        tags$hr(),
+        h4("Read Depth Analysis"),
+        fluidRow(
+          column(6, verbatimTextOutput(ns("read_depth_avg"))),
+          column(6, verbatimTextOutput(ns("read_depth_med"))),
+          column(6, plotOutput(ns("read_depth_density"))),
+          column(6, plotOutput(ns("read_depth_on_chroms")))
+        )
+      )
+    })
   })
 }
