@@ -36,7 +36,7 @@ prepare_data <- function(vcf_file){
       SUBTYPE = ifelse(TYPE == "SNP", 
                        ifelse((REF %in% purines & ALT %in% purines) | (REF %in% pyrimidines & ALT %in% pyrimidines), "Transition", "Transversion"), 
                        ifelse(nchar(REF) > nchar(ALT),"Deletion", "Insertion")),
-      AF = round(1 - AD/DP, 2)
+      AF = round(AD/DP, 2)
     )
     incProgress(0.9, detail = "Completing preprocessing...")
     vcf_tibble$CHROM <- factor(vcf_tibble$CHROM, levels = c(paste0("chr", 1:22), "chrX", "chrY", "chrM"))
