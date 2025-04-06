@@ -4,51 +4,40 @@ library(ggridges)
 library(scales)
 options(scipen = 999)
 
-# -----------------------------------
-# PREDSPRACOVANIE VCF SUBORU
-# -----------------------------------
-
-# Funkcia prepare_data() sluzi na spracovanie VCF suboru - vytvorenie tibble, 
-# vymazanie hlavicky, vymazanie pozorovani s qual < 200 a s GT 0/0, 
-# klasifikovanie typu a subtypu, vypocet alelickej frekvencie
+# Data processing
 prepare_data <- function(vcf_file){
-  suppressWarnings(suppressMessages({
-    sink("/dev/null")
-    incProgress(0.1, detail = "Reading file...")
-    header_line <- grep("^#CHROM", readLines(vcf_file)) 
-    vcf_tibble <- read_delim(vcf_file, delim = "\t", skip = header_line - 1)
-    incProgress(0.3, detail = "Processing data...")
-    vcf_tibble %<>% 
-      rename("VALUES" = last(colnames(.)), "CHROM" = first(colnames(.))) %>%
-      mutate(
-        GT = str_split(VALUES, ":") %>% map_chr(~ .x[1]),
-        AD = str_split(VALUES, ":") %>% map_chr(~ .x[2]) %>% str_split(",") %>% map_int(~ as.integer(.x[1])),
-        DP = str_split(VALUES, ":") %>% map_int(~ as.integer(.x[3])),
-        TYPE = ifelse(nchar(REF) == 1 & nchar(ALT) == 1,"SNP", "INDEL")) %>%
-      filter(QUAL > 200, 
-             GT %in% c("1|1", "0|1", "1|0", "1/1", "0/1", "1/0"),
-             DP>0,
-             CHROM != "chrM")
-    incProgress(0.7, detail = "Categorizing mutations...")
-    purines <- c("A", "G")
-    pyrimidines <- c("C", "T")
-    vcf_tibble %<>% mutate(
-      SUBTYPE = ifelse(TYPE == "SNP", 
-                       ifelse((REF %in% purines & ALT %in% purines) | (REF %in% pyrimidines & ALT %in% pyrimidines), "Transition", "Transversion"), 
-                       ifelse(nchar(REF) > nchar(ALT),"Deletion", "Insertion")),
-      AF = round(AD/DP, 2)
-    )
-    incProgress(0.9, detail = "Completing preprocessing...")
-    vcf_tibble$CHROM <- factor(vcf_tibble$CHROM, levels = c(paste0("chr", 1:22), "chrX", "chrY", "chrM"))
-    vcf_tibble %<>% select(c("CHROM", "POS", "REF", "ALT", "TYPE", "SUBTYPE", "QUAL", "GT", "AD", "DP", "AF"))
-    sink(NULL)
-    vcf_tibble
-  }))
+  incProgress(0.1, detail = "Reading file...")
+  vcf_tibble <- vroom::vroom(
+    file = vcf_file,
+    delim = "\t",
+    comment = "##"
+  )
+  incProgress(0.3, detail = "Processing data...")
+  vcf_tibble %<>% 
+    rename("VALUES" = last(colnames(.)), "CHROM" = first(colnames(.))) %>%
+    mutate(
+      GT = str_split(VALUES, ":") %>% map_chr(~ .x[1]),
+      AD = str_split(VALUES, ":") %>% map_chr(~ .x[2]) %>% str_split(",") %>% map_int(~ as.integer(.x[1])),
+      DP = str_split(VALUES, ":") %>% map_int(~ as.integer(.x[3])),
+      TYPE = ifelse(nchar(REF) == 1 & nchar(ALT) == 1,"SNP", "INDEL")) %>%
+    filter(QUAL > 200, 
+           GT %in% c("1|1", "0|1", "1|0", "1/1", "0/1", "1/0"),
+           DP>0,
+           CHROM != "chrM")
+  incProgress(0.7, detail = "Categorizing mutations...")
+  purines <- c("A", "G")
+  pyrimidines <- c("C", "T")
+  vcf_tibble %<>% mutate(
+    SUBTYPE = ifelse(TYPE == "SNP", 
+                     ifelse((REF %in% purines & ALT %in% purines) | (REF %in% pyrimidines & ALT %in% pyrimidines), "Transition", "Transversion"), 
+                     ifelse(nchar(REF) > nchar(ALT),"Deletion", "Insertion")),
+    AF = round(AD/DP, 2)
+  )
+  incProgress(0.9, detail = "Completing preprocessing...")
+  vcf_tibble$CHROM <- factor(vcf_tibble$CHROM, levels = c(paste0("chr", 1:22), "chrX", "chrY", "chrM"))
+  vcf_tibble %<>% select(c("CHROM", "POS", "REF", "ALT", "TYPE", "SUBTYPE", "QUAL", "GT", "AD", "DP", "AF"))
+  vcf_tibble
 }
-
-# -----------------------------------
-# TYPY MUTACII A ICH DISTRIBUCIA
-# -----------------------------------
 
 # Mutation Counts
 mutation_donut <- function(vcfTibble, subtypes=FALSE){
@@ -99,6 +88,7 @@ snp_value <- function(vcfTibble){
     summarise(count = n()) %>%
     mutate(percentage = round(count *100/ sum(count), 2)) %>%
     filter(TYPE == "SNP")
+  sprintf("SNP Count: %s (%s %%)", label_comma()(values$count), values$percentage)
 }
 snp_types_donut <- function(vcfTibble){
   vcfTibble %<>% filter(TYPE == "SNP")
@@ -186,13 +176,13 @@ snp_class_barplot <- function(vcfTibble){
   p
 }
 
-
 # INDEL Analysis
 indel_values <- function(vcfTibble){
   values <- vcfTibble %>% group_by(TYPE) %>%
     summarise(count = n()) %>%
     mutate(percentage = round(count *100/ sum(count), 2)) %>%
     filter(TYPE == "INDEL")
+  sprintf("INDEL Count: %s (%s %%)", label_comma()(values$count), values$percentage)
 }
 indel_types <- function(vcfTibble){
   vcfTibble %<>% filter(TYPE == "INDEL")
@@ -238,12 +228,12 @@ indel_stacked <- function(vcfTibble){
 indel_length_avg <- function(vcfTibble){
   vcfTibble %<>% filter(TYPE == "INDEL") %>%
     mutate(length = abs(nchar(ALT) - nchar(REF)))
-  round(mean(vcfTibble$length),2)
+  sprintf("Mean INDEL length: %s", round(mean(vcfTibble$length),2))
 }
 indel_length_med <- function(vcfTibble){
   vcfTibble %<>% filter(TYPE == "INDEL") %>%
     mutate(length = abs(nchar(ALT) - nchar(REF)))
-  median(vcfTibble$length)
+  sprintf("Median INDEL length: %s", median(vcfTibble$length))
 }
 indel_length <- function(vcfTibble){
   vcfTibble %<>% filter(TYPE == "INDEL") %>%
@@ -279,10 +269,10 @@ indel_length_boxplot <- function(vcfTibble){
 
 # Quality
 quality_avg <- function(vcfTibble){
-  round(mean(vcfTibble$QUAL),2)
+  sprintf("Mean Quality: %s", round(mean(vcfTibble$QUAL),2))
 }
 quality_med <- function(vcfTibble){
-  median(vcfTibble$QUAL)
+  sprintf("Median Quality: %s", median(vcfTibble$QUAL))
 }
 quality_bar <- function(vcfTibble){
   p <- ggplot(vcfTibble, aes(x=QUAL)) +
@@ -296,7 +286,8 @@ quality_bar <- function(vcfTibble){
           axis.text.x = element_text(size = 12),
           axis.text.y = element_text(size = 12),
           axis.title.x = element_text(size = 12),
-          axis.title.y = element_text(size = 12))
+          axis.title.y = element_text(size = 12))+
+    scale_x_continuous(labels = comma)
   p
 }
 quality_on_chroms <- function(vcfTibble){
@@ -315,10 +306,10 @@ quality_on_chroms <- function(vcfTibble){
 
 # Allele Frequency
 allele_freq_avg <- function(vcfTibble){
-  round(mean(vcfTibble$AF),2)
+  sprintf("Mean Allele Frequency: %s", round(mean(vcfTibble$AF),2))
 }
 allele_freq_med <- function(vcfTibble){
-  median(vcfTibble$AF)
+  sprintf("Median Allele Frequency: %s", median(vcfTibble$AF))
 }
 allele_freq_hexbin <- function(vcfTibble){
   p <- ggplot(vcfTibble, aes(x=seq_along(AF), y = AF)) +
@@ -327,6 +318,7 @@ allele_freq_hexbin <- function(vcfTibble){
          x = "Position", 
          y="Allele Frequency") +
     theme_minimal() +
+    scale_x_continuous(labels = comma)+
     theme(legend.position = "none", 
           plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
           axis.text.x = element_text(size = 12),
@@ -351,10 +343,10 @@ allele_freq_on_chroms <- function(vcfTibble){
 
 # Read Depth
 read_depth_avg <- function(vcfTibble){
-  round(mean(vcfTibble$DP),2)
+  sprintf("Mean Read Depth: %s", round(mean(vcfTibble$DP),2))
 }
 read_depth_med <- function(vcfTibble){
-  median(vcfTibble$DP)
+  sprintf("Median Read Depth: %s", median(vcfTibble$DP))
 }
 read_depth_density <- function(vcfTibble){
   p <- ggplot(vcfTibble, aes(x=DP)) +

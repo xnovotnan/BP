@@ -2,7 +2,7 @@ library(shiny)
 library(shinyWidgets)
 library(shinyFiles)
 library(tinytex)
-source(file.path("ComparisonModule", "sampleComparison.R"))
+source(file.path("QualimapComparisonModule", "sampleComparison.R"))
 
 # Serverová časť modulu pre Qualimap porovnanie
 comparisonModuleServer <- function(id) {
@@ -100,9 +100,10 @@ comparisonModuleServer <- function(id) {
     output$download_comparison_pdf <- downloadHandler(
       filename = "comparisonReport.pdf",
       content = function(file) {
-        tempReport <- file.path("ComparisonModule", "comparisonReport.Rmd") 
+        tempReport <- file.path("QualimapComparisonModule", "comparisonReport.Rmd") 
         file.copy("comparisonReport.Rmd", tempReport, overwrite = TRUE)
         params <- list(
+          folder_name = comparisonFolderPath(),
           bases_comparison = bases_contigs_comparison(processedData(), "number_of_bases", "Number of Bases (bp)"),
           contig_comparison = bases_contigs_comparison(processedData(), "number_of_contigs", "Number of Contigs"),
           reads_comparison = reads_comparison(processedData()),

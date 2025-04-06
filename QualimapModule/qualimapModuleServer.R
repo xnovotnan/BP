@@ -151,6 +151,7 @@ qualimapModuleServer <- function(id) {
         tempReport <- file.path("QualimapModule", "qualimapReport.Rmd") 
         file.copy("qualimapReport.Rmd", tempReport, overwrite = TRUE)
         params <- list(
+          file_name = qualimapFolderPath(),
           num_of_bases = qualimapData()["number of bases"],
           num_of_contigs = qualimapData()["number of contigs"],
           num_of_reads = qualimapData()["number of reads"],

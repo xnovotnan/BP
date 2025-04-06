@@ -10,7 +10,7 @@ vcfModuleUI <- function(id) {
     fileInput(inputId = ns("vcfFile"), 
               label = "Select VCF File", 
               multiple = FALSE, 
-              accept = ".vcf"),
+              accept = ".gz"),
     uiOutput(ns("vcfModuleAnalysis"))
   )
 }

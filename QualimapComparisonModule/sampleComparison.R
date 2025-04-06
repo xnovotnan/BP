@@ -250,7 +250,7 @@ coverage_comparison <- function(samples_df){
     geom_bar(stat = "identity", show.legend = FALSE) +
     geom_line(color = "black", linewidth = 1) +
     geom_point(color = "black", size = 5, show.legend = FALSE)+
-    labs(title = "Histogram of Insert Size") +
+    labs(title = "Histogram of Data Coverage") +
     theme_void() +
     theme(plot.title = element_text(hjust = 0.5, size = 14, face = "bold")) +
     geom_text(aes(x = mean_coverageData / 2, label = label), 

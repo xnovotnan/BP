@@ -1,0 +1,86 @@
+---
+title: "VCF Comparison Analysis Report"
+output: pdf_document
+  
+params:
+  folder_name: NA
+  selected_family: NA
+  num_of_mutation: NA
+  mutation_heatmap: NA
+  mutation_types_distribution: NA 
+  mutation_subtypes_distribution: NA 
+  snp_class_comparison: NA 
+  transversion_transitions: NA 
+  insertion_deletions: NA
+  indel_len_boxplot: NA
+  quality_boxplot: NA
+  frequency_ridges: NA
+  read_depth: NA
+---
+
+## File
+- **Folder: ** `r params$folder_name`
+- **Selected family: ** `r params$selected_family`
+
+
+## Mutation Counts
+```{r echo=FALSE, out.width="70%"}
+print(params$mutation_donut)
+```
+
+
+```{r echo=FALSE, out.width="70%"}
+print(params$mutation_distribution)
+```
+
+
+```{r echo=FALSE, out.width="70%"}
+print(params$mutation_donut)
+```
+
+
+```{r echo=FALSE, out.width="70%"}
+print(params$mutation_distribution)
+```
+
+
+## Single Nucleotide Polymorphism (SNP) Analysis
+```{r echo=FALSE, out.width="70%"}
+print(params$snp_types_donut)
+```
+
+
+```{r echo=FALSE, out.width="70%"}
+print(params$snp_class_stacked)
+```
+
+
+## Insertion and Deletion (INDEL) Analysis
+```{r echo=FALSE,out.width="70%"}
+```
+
+
+```{r echo=FALSE, out.width="70%"}
+print(params$indel_stacked)
+```
+
+
+## Quality Analysis
+```{r echo=FALSE,out.width="70%"}
+print(params$quality_bar)
+```
+
+
+## Allele Frequency Analysis
+```{r echo=FALSE,out.width="70%"}
+print(params$allele_freq_hexbin)
+```
+
+
+## Read Depth Analysis
+```{r echo=FALSE, out.width="70%"}
+print(params$read_depth_density)
+```
+
+
+

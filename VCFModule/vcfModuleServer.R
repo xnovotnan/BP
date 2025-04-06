@@ -37,9 +37,7 @@ vcfModuleServer <- function(id) {
       data <- processedData()
       req(data)
       if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
-      values <- snp_value(data)
-      result <- sprintf("SNP Count: %s (%s %%)", label_comma()(values$count), values$percentage)
-      
+      snp_value(data)
     })
     output$snp_types_donut <- renderPlot({
       data <- processedData()
@@ -70,9 +68,7 @@ vcfModuleServer <- function(id) {
       data <- processedData()
       req(data)
       if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
-      values <- indel_values(data)
-      result <- sprintf("INDEL Count: %s (%s %%)", label_comma()(values$count), values$percentage)
-      
+      indel_values(data)
     })
     output$indel_types <- renderPlot({
       data <- processedData()
@@ -89,15 +85,13 @@ vcfModuleServer <- function(id) {
       data <- processedData()
       req(data)
       if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
-      avg <- indel_length_avg(data)
-      sprintf("Mean INDEL length: %s", avg)
+      indel_length_avg(data)
     })
     output$indel_length_med <- renderText({
       data <- processedData()
       req(data)
       if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
-      med <- indel_length_med(data)
-      sprintf("Median INDEL length: %s", med)
+      indel_length_med(data)
     })
     output$indel_length <- renderPlot({
       data <- processedData()
@@ -117,15 +111,13 @@ vcfModuleServer <- function(id) {
       data <- processedData()
       req(data)
       if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
-      avg <- quality_avg(data)
-      sprintf("Mean Quality: %s", avg)
+      quality_avg(data)
     })
     output$qual_med <- renderText({
       data <- processedData()
       req(data)
       if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
-      med <- quality_med(data)
-      sprintf("Median Quality: %s", med)
+      quality_med(data)
     })
     output$quality_bar <- renderPlot({
       data <- processedData()
@@ -144,15 +136,13 @@ vcfModuleServer <- function(id) {
       data <- processedData()
       req(data)
       if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
-      avg <- allele_freq_avg(data)
-      sprintf("Mean Allele Frequency: %s", avg)
+      allele_freq_avg(data)
     })
     output$allele_freq_med <- renderText({
       data <- processedData()
       req(data)
       if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
-      med <- allele_freq_med(data)
-      sprintf("Median Allele Frequency: %s", med)
+      allele_freq_med(data)
     })
     output$allele_freq_hexbin <- renderPlot({
       data <- processedData()
@@ -171,15 +161,13 @@ vcfModuleServer <- function(id) {
       data <- processedData()
       req(data)
       if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
-      avg <- read_depth_avg(data)
-      sprintf("Mean Read Depth: %s", avg)
+      read_depth_avg(data)
     })
     output$read_depth_med <- renderText({
       data <- processedData()
       req(data)
       if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
-      med <- read_depth_med(data)
-      sprintf("Median Read Depth: %s", med)
+      read_depth_med(data)
     })
     output$read_depth_density <- renderPlot({
       data <- processedData()
@@ -193,6 +181,47 @@ vcfModuleServer <- function(id) {
       read_depth_on_chroms(data)
     })
     
+    # PDF REPORT
+    output$download_vcf_pdf <- downloadHandler(
+      filename = "vcfReport.pdf",
+      content = function(file) {
+        tempReport <- file.path("VCFModule", "vcfReport.Rmd") 
+        file.copy("vcfReport.Rmd", tempReport, overwrite = TRUE)
+        params <- list(
+          file_name = input$vcfFile[[1]],
+          selected_chromosome = input$chrom_select,
+          mutation_donut = mutation_donut(processedData()),
+          mutation_distribution = mutation_distribution(processedData()),
+          snp_value = snp_value(processedData()),
+          snp_types_donut = snp_types_donut(processedData()),
+          snp_class_stacked = snp_class_stacked(processedData()),
+          snp_class_boxplot = snp_class_boxplot(processedData()),
+          snp_class_barplot = snp_class_barplot(processedData()),
+          indel_values = indel_values(processedData()),
+          indel_length_avg = indel_length_avg(processedData()),
+          indel_length_med = indel_length_med(processedData()),
+          indel_types = indel_types(processedData()),
+          indel_stacked = indel_stacked(processedData()),
+          indel_length = indel_length(processedData()),
+          indel_length_boxplot = indel_length_boxplot(processedData()),
+          quality_avg = quality_avg(processedData()),
+          quality_med = quality_med(processedData()),
+          quality_bar = quality_bar(processedData()),
+          quality_on_chroms = quality_on_chroms(processedData()),
+          allele_freq_avg = allele_freq_avg(processedData()),
+          allele_freq_med = allele_freq_med(processedData()),
+          allele_freq_hexbin = allele_freq_hexbin(processedData()),
+          allele_freq_on_chroms = allele_freq_on_chroms(processedData()),
+          read_depth_avg = read_depth_avg(processedData()),
+          read_depth_med = read_depth_med(processedData()),
+          read_depth_density = read_depth_density(processedData()),
+          read_depth_on_chroms = read_depth_on_chroms(processedData())
+        )
+        rmarkdown::render(tempReport, output_file = file,
+                          params = params,
+                          envir = new.env(parent = globalenv()))
+      }
+    )
     
     # COMBINED VCF ANALYSIS
     output$vcfModuleAnalysis <- renderUI({
@@ -259,7 +288,8 @@ vcfModuleServer <- function(id) {
           column(6, verbatimTextOutput(ns("read_depth_med"))),
           column(6, plotOutput(ns("read_depth_density"))),
           column(6, plotOutput(ns("read_depth_on_chroms")))
-        )
+        ),
+        downloadButton(ns("download_vcf_pdf"), "Download PDF Report")
       )
     })
   })

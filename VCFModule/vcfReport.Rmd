@@ -1,0 +1,131 @@
+---
+title: "VCF Analysis Report"
+output: pdf_document
+  
+params:
+  file_name: NA
+  selected_chromosome: NA
+  mutation_donut: NA
+  mutation_distribution: NA
+  snp_value: NA
+  snp_types_donut: NA
+  snp_class_stacked: NA
+  snp_class_boxplot: NA
+  snp_class_barplot: NA
+  indel_values: NA
+  indel_length_avg: NA
+  indel_length_med: NA
+  indel_types: NA
+  indel_stacked: NA
+  indel_length: NA
+  indel_length_boxplot: NA
+  quality_avg: NA
+  quality_med: NA
+  quality_bar: NA
+  quality_on_chroms: NA
+  allele_freq_avg: NA
+  allele_freq_med: NA
+  allele_freq_hexbin: NA
+  allele_freq_on_chroms: NA
+  read_depth_avg: NA 
+  read_depth_med: NA
+  read_depth_density: NA
+  read_depth_on_chroms: NA
+---
+
+## File
+- **File: ** `r params$file_name`
+- **Selected chromosome: ** `r params$selected_chromosome`
+
+
+## Mutation Counts
+```{r echo=FALSE, out.width="70%"}
+print(params$mutation_donut)
+```
+
+```{r echo=FALSE, out.width="70%"}
+print(params$mutation_distribution)
+```
+
+
+## Single Nucleotide Polymorphism (SNP) Analysis
+- `r params$snp_value`
+
+```{r echo=FALSE, out.width="70%"}
+print(params$snp_types_donut)
+```
+
+```{r echo=FALSE, out.width="70%"}
+print(params$snp_class_stacked)
+```
+
+```{r echo=FALSE, out.width="70%"}
+print(params$snp_class_boxplot)
+```
+
+```{r echo=FALSE, out.width="70%"}
+print(params$snp_class_barplot)
+```
+
+
+## Insertion and Deletion (INDEL) Analysis
+- `r params$indel_values`
+- `r params$indel_length_avg`
+- `r params$indel_length_med`
+
+```{r echo=FALSE, out.width="70%"}
+print(params$indel_types)
+```
+
+```{r echo=FALSE, out.width="70%"}
+print(params$indel_stacked)
+```
+
+```{r echo=FALSE, out.width="70%"}
+print(params$indel_length)
+```
+
+```{r echo=FALSE, out.width="70%"}
+print(params$indel_length_boxplot)
+```
+
+
+## Quality Analysis
+- `r params$quality_avg`
+- `r params$quality_med`
+
+```{r echo=FALSE, out.width="70%"}
+print(params$quality_bar)
+```
+
+```{r echo=FALSE, out.width="70%"}
+print(params$quality_on_chroms)
+```
+
+
+## Allele Frequency Analysis
+- `r params$allele_freq_avg`
+- `r params$allele_freq_med`
+
+```{r echo=FALSE, out.width="70%"}
+print(params$allele_freq_hexbin)
+```
+
+```{r echo=FALSE, out.width="70%"}
+print(params$allele_freq_on_chroms)
+```
+
+
+## Read Depth Analysis
+- `r params$read_depth_avg`
+- `r params$read_depth_med`
+
+```{r echo=FALSE, out.width="70%"}
+print(params$read_depth_density)
+```
+
+```{r echo=FALSE, out.width="70%"}
+print(params$read_depth_on_chroms)
+```
+
+
