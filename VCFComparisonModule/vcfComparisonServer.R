@@ -105,7 +105,7 @@ vcfComparisonServer <- function(id) {
         tempReport <- file.path("VCFComparisonModule", "vcfComparisonReport.Rmd")
         file.copy("vcfComparisonReport.Rmd", tempReport, overwrite = TRUE)
         params <- list(
-          folder_name = input$vcfComparisonFolder,
+          folder_name = vcfComparisonFolderPath(),
           selected_family = input$family_select,
           num_of_mutation = num_of_mutation(processedData()),
           mutation_heatmap = mutation_heatmap(processedData()),

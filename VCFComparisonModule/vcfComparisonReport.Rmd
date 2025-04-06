@@ -25,61 +25,62 @@ params:
 
 ## Mutation Counts
 ```{r echo=FALSE, out.width="70%"}
-print(params$mutation_donut)
+print(params$num_of_mutation)
 ```
 
 
 ```{r echo=FALSE, out.width="70%"}
-print(params$mutation_distribution)
+print(params$mutation_heatmap)
 ```
 
 
 ```{r echo=FALSE, out.width="70%"}
-print(params$mutation_donut)
+print(params$mutation_types_distribution)
 ```
 
 
 ```{r echo=FALSE, out.width="70%"}
-print(params$mutation_distribution)
+print(params$mutation_subtypes_distribution)
 ```
 
 
 ## Single Nucleotide Polymorphism (SNP) Analysis
 ```{r echo=FALSE, out.width="70%"}
-print(params$snp_types_donut)
+print(params$snp_class_comparison)
 ```
 
 
 ```{r echo=FALSE, out.width="70%"}
-print(params$snp_class_stacked)
+print(params$transversion_transitions)
 ```
 
 
 ## Insertion and Deletion (INDEL) Analysis
 ```{r echo=FALSE,out.width="70%"}
+print(params$insertion_deletions)
 ```
 
 
 ```{r echo=FALSE, out.width="70%"}
-print(params$indel_stacked)
+print(params$indel_len_boxplot)
 ```
 
 
 ## Quality Analysis
 ```{r echo=FALSE,out.width="70%"}
-print(params$quality_bar)
+print(params$quality_boxplot)
 ```
 
 
 ## Allele Frequency Analysis
 ```{r echo=FALSE,out.width="70%"}
-print(params$allele_freq_hexbin)
+print(params$frequency_ridges)
 ```
 
 
 ## Read Depth Analysis
 ```{r echo=FALSE, out.width="70%"}
-print(params$read_depth_density)
+print(params$read_depth)
 ```
 
 
