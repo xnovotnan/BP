@@ -95,7 +95,7 @@ reads_comparison <- function(samples_df){
   p <- ggplot(samples_df, aes(x=count, y=reorder(sample, count), fill=reads, color=sample)) +
     geom_col(position = position_dodge(0.8), width = 0.7, linewidth=1) +
     labs(title = "Number of Reads and Mapped Reads",
-         x = element_blank(),
+         x = "Number of Reads",
          y = element_blank()) +
     theme_minimal() +
     theme(legend.position = "right",  
@@ -118,7 +118,7 @@ mapped_paired_reads <- function(samples_df){
     geom_line(color = "green3", linewidth = 1) +
     geom_point(color = "green3", size = 5)+
     labs(title = "Number of Mapped Paired Reads (Both in pair)",
-         x = element_blank(),
+         x = "Number of Reads",
          y = element_blank()) +
     theme_minimal() +
     theme(legend.position = "none",  
@@ -135,7 +135,7 @@ mapped_paired_reads_singletons <- function(samples_df){
     geom_line(color = "purple2", linewidth = 1) +
     geom_point(color = "purple2", size = 5)+
     labs(title = "Number of Mapped Paired Reads (Singletons)",
-         x = element_blank(),
+         x = "Number of Reads",
          y = element_blank()) +
     theme_minimal() +
     theme(legend.position = "none",  
@@ -156,7 +156,7 @@ mapped_bases_comparison <- function(samples_df){
   p <- ggplot(samples_df, aes(x=count, y=reorder(sample, count), fill=reads, color=sample)) +
     geom_col(position = position_dodge(0.8), width = 0.7, linewidth=1) +
     labs(title = "Number of Mapped and Sequenced Bases (bp)",
-         x = element_blank(),
+         x = "Number of Bases",
          y = element_blank()) +
     theme_minimal() +
     theme(legend.position = "right",  
@@ -179,7 +179,7 @@ duplicated_reads <- function(samples_df){
     geom_line(color = "red3", linewidth = 1) +
     geom_point(color = "red3", size = 5)+
     labs(title = "Number of Duplicated Reads",
-         x = element_blank(),
+         x = "Number of Reads",
          y = element_blank()) +
     theme_minimal() +
     theme(legend.position = "none",  
@@ -195,7 +195,7 @@ mapping_quality_comparison <- function(samples_df){
                               color=sample)) +
     geom_boxplot(width=0.5) +
     labs(title = "Mean Mapping Quality",
-         x = element_blank(),
+         x = "Mean Quality",
          y = element_blank()) +
     theme_minimal() +
     theme(legend.position = "none", 
@@ -214,8 +214,8 @@ insert_size_comparison <- function(samples_df){
     geom_bar(stat = "identity", show.legend = FALSE) +
     geom_line(color = "black", linewidth = 1) +
     geom_point(color = "black", size = 5, show.legend = FALSE)+
-    labs(title = "Histogram of Insert Size") +
-    theme_void() +
+    labs(title = "Histogram of Insert Size", x="Insert Size", y="Sample") +
+    theme_minimal() +
     theme(plot.title = element_text(hjust = 0.5, size = 14, face = "bold")) +
     geom_text(aes(x = mean_insert_size / 2, label = label), 
               size = 4, 
@@ -230,7 +230,7 @@ insert_size_comparison <- function(samples_df){
     geom_point(aes(x = median_insert_size, color = "Median", shape = "Median"), size = 5) + 
     theme_minimal() +
     labs(title = "Distribution of Insert Size",
-         x = element_blank(), y = element_blank(), 
+         x = "Insert Size", y = element_blank(), 
          color = "Measure", shape = "Measure") +
     theme(plot.title = element_text(hjust = 0.5, size = 14, face = "bold"), 
           legend.position = "bottom", legend.title = element_blank(),
@@ -242,6 +242,7 @@ insert_size_comparison <- function(samples_df){
     scale_x_continuous(labels = comma)
   (p1 + p2)
 }
+
 # Data Coverage
 coverage_comparison <- function(samples_df){
   samples_df %<>% mutate(label = paste0(sample, " - \n", label_comma()(mean_coverageData)))
@@ -250,8 +251,8 @@ coverage_comparison <- function(samples_df){
     geom_bar(stat = "identity", show.legend = FALSE) +
     geom_line(color = "black", linewidth = 1) +
     geom_point(color = "black", size = 5, show.legend = FALSE)+
-    labs(title = "Histogram of Data Coverage") +
-    theme_void() +
+    labs(title = "Histogram of Data Coverage", x="Data Coverage", y="Sample") +
+    theme_minimal() +
     theme(plot.title = element_text(hjust = 0.5, size = 14, face = "bold")) +
     geom_text(aes(x = mean_coverageData / 2, label = label), 
               size = 4, 
@@ -264,7 +265,7 @@ coverage_comparison <- function(samples_df){
                   width = 0.2, color = "red") + 
     geom_point(size=5, color="orange") +
     labs(title = "Distribution of Data Coverage",
-         x = element_blank(),
+         x = "Data Coverage",
          y = element_blank()) +
     theme_minimal() +
     theme(legend.position = "none",  
@@ -282,7 +283,7 @@ gc_comparison <- function(samples_df){
     geom_line(color = "blue2", linewidth = 1) +
     geom_point(color = "blue2", size = 5)+
     labs(title = "GC Percentage (%)",
-         x = element_blank(),
+         x = "GC Content",
          y = element_blank()) +
     theme_minimal() +
     theme(legend.position = "none",  
@@ -309,7 +310,7 @@ stacked_actg <- function(samples_df){
   
   p <- ggplot(samples_df, aes(x = percentage, y = sample, fill = base)) +
     geom_bar(stat = "identity", position = "stack") + 
-    labs(x = element_blank(), 
+    labs(x = "Percentage",
          y = element_blank(), 
          title= "ACTG Distribution (%)") +
     theme_minimal() +

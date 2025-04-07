@@ -6,9 +6,16 @@ library(shinyFiles)
 qualimapModuleUI <- function(id) {
   ns <- NS(id)
   tagList(
-    h3("Qualimap Statistics Summary"),
-    shinyDirButton(ns("qualimapFolder"), "Select qualimap folder", "Select folder"),
-    verbatimTextOutput(ns("selectedFolderPath")),
-    uiOutput(ns("qualimapModuleCombined"))
+    tags$h3(
+      "Qualimap Statistics Summary",
+      tags$span(
+        icon("info-circle"),
+        title = "Analyze sequencing quality metrics from one sample, such as read mapping, coverage, GC content, and insert size",
+        style = "cursor: help; color: black; font-size: 12px; vertical-align: middle;"
+      )
+    ),
+    shinyDirButton(ns("qualimap_folder"), "Select qualimap folder", "Select folder"),
+    verbatimTextOutput(ns("selected_folder_path")),
+    uiOutput(ns("qualimap_module_combined"))
   )
 }

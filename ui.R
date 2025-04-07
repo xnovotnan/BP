@@ -2,7 +2,7 @@ library(shiny)
 library(bslib)
 source(file.path("QualimapModule", "qualimapModuleUI.R"))
 source(file.path("VCFModule", "vcfModuleUI.R"))
-source(file.path("QualimapComparisonModule", "comparisonModuleUI.R"))
+source(file.path("QualimapComparisonModule", "qualimapComparisonUI.R"))
 source(file.path("VCFComparisonModule", "vcfComparisonUI.R"))
 
 ui <- page(
@@ -12,7 +12,7 @@ ui <- page(
       nav_panel("VCF File Analysis", vcfModuleUI("vcf")),
       nav_panel("VCF Comparison", vcfComparisonUI("vcfComparison")),
       nav_panel("Qualimap Analysis", qualimapModuleUI("qualimap")),
-      nav_panel("Qualimap Comparison", comparisonModuleUI("comparison"))
+      nav_panel("Qualimap Comparison", comparisonModuleUI("qualimapComparison"))
     )
   )
 )

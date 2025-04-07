@@ -61,15 +61,14 @@ num_of_mutation <- function(vcf_data){
   vcf_data %<>% mutate(mutation_count = map_int(data, nrow))
 
   p <- ggplot(vcf_data, aes(x = mutation_count, y = reorder(name, mutation_count), fill = name)) +
-    geom_bar(stat = "identity", show.legend = FALSE) +
-    labs(title =  element_blank(),
-         x = element_blank(),
+    geom_bar(stat = "identity", show.legend = FALSE, fill="skyblue") +
+    labs(title = "Mutation Counts per Sample",
+         x = "Number of Mutations",
          y= element_blank()) +
     theme_minimal() +
     theme(plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
           axis.text.x = element_text(size = 12),
-          axis.text.y = element_text(size = 12)) +
-    scale_fill_brewer(palette = "Set3")
+          axis.text.y = element_text(size = 12))
   p
 }
 mutation_heatmap <- function(vcf_data){
@@ -92,9 +91,10 @@ mutation_heatmap <- function(vcf_data){
     theme(legend.position = "bottom",
           legend.title = element_blank(),
           plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
-          axis.text.x = element_text(size = 12, hjust = 1, angle = 90),
+          axis.text.x = element_text(size = 12, hjust = 1, angle = 45),
           axis.text.y = element_text(size = 12),
-          legend.key.width = unit(1, "cm"))
+          legend.key.width = unit(1, "cm"))+
+    scale_fill_gradient(low = "lightgreen", high = "orange")
   p
 }
 mutation_types_distribution <- function(vcf_data){
@@ -110,7 +110,7 @@ mutation_types_distribution <- function(vcf_data){
   
   p <- ggplot(mutationCounts, aes(x = SAMPLE, y = percentage, fill = TYPE)) +
     geom_bar(stat = "identity", position = "stack") +
-    labs(x = NULL, y = NULL, title = "Variant Distribution on Samples (%)") +
+    labs(x = "Percentage", y = element_blank(), title = "Distribution of Mutation Types Across Samples (%)") +
     coord_flip() +
     scale_fill_brewer(palette = "Set3")+
     theme_minimal()+
@@ -133,7 +133,7 @@ mutation_subtypes_distribution <- function(vcf_data){
   
   p <- ggplot(mutationCounts, aes(x = SAMPLE, y = percentage, fill = SUBTYPE)) +
     geom_bar(stat = "identity", position = "stack") +
-    labs(x = NULL, y = NULL, title = "Variant Distribution on Samples (%)") +
+    labs(x = "Percentage", y = element_blank(), title = "Distribution of Mutation Subtypes Across Samples (%)") +
     coord_flip() +
     scale_fill_brewer(palette = "Set3")+
     theme_minimal()+
@@ -159,7 +159,7 @@ snp_class_comparison <- function(vcf_data){
     geom_bar(stat = "identity", position = "stack") + 
     labs(x = "Percentage", 
          y = element_blank(), 
-         title= "SNP Types Distribution on Samples") +
+         title= "SNP Substitution Type Distribution on Samples") +
     theme_minimal() +
     scale_fill_brewer(palette = "Set3") +
     theme(plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
@@ -183,7 +183,7 @@ transversion_transitions <- function(vcf_data){
   
   p <- ggplot(mutationCounts, aes(x = SAMPLE, y = percentage, fill = SUBTYPE)) +
     geom_bar(stat = "identity", position = "stack") +
-    labs(x = NULL, y = NULL, title = "Variant Distribution on Samples (%)") +
+    labs(x = "Percentage", y = element_blank(), title = "Transversions-Transitions Distribution on Samples (%)") +
     coord_flip() +
     scale_fill_brewer(palette = "Set3")+
     theme_minimal()+
@@ -209,7 +209,7 @@ insertion_deletions <- function(vcf_data){
   
   p <- ggplot(mutationCounts, aes(x = SAMPLE, y = percentage, fill = SUBTYPE)) +
     geom_bar(stat = "identity", position = "stack") +
-    labs(x = NULL, y = NULL, title = "Variant Distribution on Samples (%)") +
+    labs(x = "Percentage", y = element_blank(), title = "Insertion-Deletion Distribution on Samples (%)") +
     coord_flip() +
     scale_fill_brewer(palette = "Set3")+
     theme_minimal()+
@@ -228,7 +228,7 @@ indel_len_boxplot <- function(vcf_data){
     
   p <- ggplot(vcf_data, aes(x = length, y = sample, fill = sample)) +
     geom_boxplot(show.legend = FALSE) +
-    labs(title = "Boxplot of INDEL Length per Sample",  x = "INDEL Length", y = element_blank()) +
+    labs(title = "Boxplot of INDEL Length per Sample",  x = "Length (bp)", y = element_blank()) +
     theme_minimal() +
     scale_fill_brewer(palette = "Set3") +
     theme(plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
@@ -238,22 +238,6 @@ indel_len_boxplot <- function(vcf_data){
 }
 
 # Quality Analysis
-quality_boxplot_per_fam <- function(vcf_data){
-  plot_data <- vcf_data %>%
-    mutate(data = map2(data, name, ~mutate(.x, sample = .y))) %>%
-    unnest(data) %>%
-    select(sample, family, QUAL)
-  
-  p <- ggplot(plot_data, aes(x = QUAL, y = family, fill=family)) +
-    geom_boxplot(show.legend = FALSE) +
-    labs(title = "Boxplot of Quality per Family",  x = "Quality", y = element_blank()) +
-    theme_minimal() +
-    scale_fill_brewer(palette = "Set3") +
-    theme(plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
-          axis.text.x = element_text(size = 12),
-          axis.text.y = element_text(size = 12))
-  p
-}
 quality_boxplot <- function(vcf_data){
   vcf_data %<>%
     mutate(data = map2(data, name, ~mutate(.x, sample = .y))) %>%
@@ -262,7 +246,7 @@ quality_boxplot <- function(vcf_data){
   
   p <- ggplot(vcf_data, aes(x = QUAL, y = sample, fill = sample)) +
     geom_boxplot(show.legend = FALSE) +
-    labs(title = "Boxplot of QUAL per Sample",  x = "Quality", y = element_blank()) +
+    labs(title = "Boxplot of Quality per Sample",  x = "Quality", y = element_blank()) +
     theme_minimal() +
     scale_fill_brewer(palette = "Set3") +
     theme(plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
@@ -281,8 +265,8 @@ frequency_ridges <- function(vcf_data){
   
   p <- ggplot(vcf_data, aes(x=AF, y=sample, fill=sample)) +
     geom_density_ridges() +
-    labs(title = "Allele Frequency across the chromosomes",
-         x= element_blank(),
+    labs(title = "Allele Frequency Across Samples",
+         x= "Allele Frequency",
          y=element_blank()) +
     theme_minimal() +
     scale_fill_brewer(palette = "Set3") +
@@ -302,8 +286,8 @@ read_depth <- function(vcf_data){
   
   p <- ggplot(vcf_data, aes(x=DP, y=sample, fill= sample)) +
     geom_violin(color="black") +
-    labs(title = "Read depth across chromosomes",
-         x = element_blank(),
+    labs(title = "Read depth Across Samples",
+         x = "Read depth",
          y = element_blank()) +
     theme_minimal() +
     scale_fill_brewer(palette = "Set3") +
