@@ -58,9 +58,7 @@ qualimapModuleServer <- function(id) {
       paste("Number of Duplicated Reads:", qualimapData()["number of duplicated reads (flagged)"])
     })
     output$duplication_rate_histogram <- renderImage({
-      folderPath <- qualimapFolderPath()
-      req(folderPath)
-      file_path <- find_png(folderPath, "genome_uniq_read_starts_histogram.png")
+      file_path <- find_png(qualimapFolderPath(), "genome_uniq_read_starts_histogram.png")
       list(src = file_path,
            contentType = "image/png",
            width = "100%")
@@ -69,9 +67,7 @@ qualimapModuleServer <- function(id) {
       paste("Mean Mapping Quality:", qualimapData()["mean mapping quality"])
     })
     output$mapping_quality_histogram <- renderImage({
-      folderPath <- qualimapFolderPath()
-      req(folderPath)
-      file_path <- find_png(folderPath, "genome_mapping_quality_histogram.png")
+      file_path <- find_png(qualimapFolderPath(), "genome_mapping_quality_histogram.png")
       list(src = file_path,
            contentType = "image/png",
            width = "100%")
@@ -89,17 +85,13 @@ qualimapModuleServer <- function(id) {
       paste("Standard Deviation of Insert Size:", qualimapData()["std insert size"])
     })
     output$insert_size_across_reference <- renderImage({
-      folderPath <- qualimapFolderPath()
-      req(folderPath)
-      file_path <- find_png(folderPath, "genome_insert_size_across_reference.png")
+      file_path <- find_png(qualimapFolderPath(), "genome_insert_size_across_reference.png")
       list(src = file_path,
            contentType = "image/png",
            width = "100%")
     }, deleteFile = FALSE)
     output$insert_size_histogram <- renderImage({
-      folderPath <- qualimapFolderPath()
-      req(folderPath)
-      file_path <- find_png(folderPath, "genome_insert_size_histogram.png")
+      file_path <- find_png(qualimapFolderPath(), "genome_insert_size_histogram.png")
       list(src = file_path,
            contentType = "image/png",
            width = "100%")
@@ -114,14 +106,10 @@ qualimapModuleServer <- function(id) {
       paste("Standard Deviation of Coverage:", qualimapData()["std coverageData"])
     })
     output$qualimap_coverage <- renderPlot({
-      folderPath <- qualimapFolderPath()
-      req(folderPath)
-      process_qualimap_coverage(folderPath)
+      process_qualimap_coverage(qualimapFolderPath())
     })
     output$qualimap_coverage_pc <- renderPlot({
-      folderPath <- qualimapFolderPath()
-      req(folderPath)
-      process_qualimap_coverage_pc(folderPath)
+      process_qualimap_coverage_pc(qualimapFolderPath())
     })
     
     
@@ -130,14 +118,10 @@ qualimapModuleServer <- function(id) {
       paste("GC Percentage:", qualimapData()["GC percentage"])
     })
     output$actg_content_barplot <- renderPlot({
-      data <- qualimapData()
-      req(data)
-      process_ACTG_content(data)
+      process_ACTG_content(qualimapData())
     })
     output$cg_content_distribution <- renderImage({
-      folderPath <- qualimapFolderPath()
-      req(folderPath)
-      file_path <- find_png(folderPath,"genome_gc_content_per_window.png")
+      file_path <- find_png(qualimapFolderPath(),"genome_gc_content_per_window.png")
       list(src = file_path,
            contentType = "image/png",
            width = "100%")
@@ -188,6 +172,7 @@ qualimapModuleServer <- function(id) {
     # COMBINED QUALIMAP ANALYSIS
     output$qualimapModuleCombined <- renderUI({
       req(qualimapFolderPath())
+      req(qualimapData())
       ns <- NS(id)
       tagList(
         h4("Reference"),

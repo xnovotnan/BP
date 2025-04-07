@@ -28,72 +28,48 @@ comparisonModuleServer <- function(id) {
     
     # Reference
     output$bases_comparison <- renderPlot({
-      data <- processedData()
-      req(data)
-      bases_contigs_comparison(data, "number_of_bases", "Number of Bases (bp)")
+      bases_contigs_comparison(processedData(), "number_of_bases", "Number of Bases (bp)")
     })
     output$contig_comparison <- renderPlot({
-      data <- processedData()
-      req(data)
-      bases_contigs_comparison(data, "number_of_contigs", "Number of Contigs")
+      bases_contigs_comparison(processedData(), "number_of_contigs", "Number of Contigs")
     })
     
     # Read Statistics
     output$reads_comparison <- renderPlot({
-      data <- processedData()
-      req(data)
-      reads_comparison(data)
+      reads_comparison(processedData())
     })
     output$mapped_paired_reads_comparison <- renderPlot({
-      data <- processedData()
-      req(data)
-      mapped_paired_reads(data)
+      mapped_paired_reads(processedData())
     })
     output$mapped_paired_reads_singletons_comparison <- renderPlot({
-      data <- processedData()
-      req(data)
-      mapped_paired_reads_singletons(data)
+      mapped_paired_reads_singletons(processedData())
     })
     output$mapped_bases_comparison <- renderPlot({
-      data <- processedData()
-      req(data)
-      mapped_bases_comparison(data)
+      mapped_bases_comparison(processedData())
     })
     output$duplicated_reads_comparison <- renderPlot({
-      data <- processedData()
-      req(data)
-      duplicated_reads(data)
+      duplicated_reads(processedData())
     })
     output$mapping_quality_comparison <- renderPlot({
-      data <- processedData()
-      req(data)
-      mapping_quality_comparison(data)
+      mapping_quality_comparison(processedData())
     })
     
     # Insert Size
     output$insert_size_comparison <- renderPlot({
-      data <- processedData()
-      req(data)
-      insert_size_comparison(data)
+      insert_size_comparison(processedData())
     })
     
     # Data Coverage
     output$coverage_comparison <- renderPlot({
-      data <- processedData()
-      req(data)
-      coverage_comparison(data)
+      coverage_comparison(processedData())
     })
     
     # ACTG Content
     output$gc_percentage_comparison <- renderPlot({
-      data <- processedData()
-      req(data)
-      gc_comparison(data)
+      gc_comparison(processedData())
     })
     output$actg_content_comparison <- renderPlot({
-      data <- processedData()
-      req(data)
-      stacked_actg(data)
+      stacked_actg(processedData())
     })
     
     # PDF REPORT
