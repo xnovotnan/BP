@@ -110,7 +110,7 @@ mutation_types_distribution <- function(vcf_data){
   
   p <- ggplot(mutationCounts, aes(x = SAMPLE, y = percentage, fill = TYPE)) +
     geom_bar(stat = "identity", position = "stack") +
-    labs(x = "Percentage", y = element_blank(), title = "Distribution of Mutation Types Across Samples (%)") +
+    labs(x = element_blank(), y = "Percentage", title = "Distribution of Mutation Types Across Samples (%)") +
     coord_flip() +
     scale_fill_brewer(palette = "Set3")+
     theme_minimal()+
@@ -133,7 +133,7 @@ mutation_subtypes_distribution <- function(vcf_data){
   
   p <- ggplot(mutationCounts, aes(x = SAMPLE, y = percentage, fill = SUBTYPE)) +
     geom_bar(stat = "identity", position = "stack") +
-    labs(x = "Percentage", y = element_blank(), title = "Distribution of Mutation Subtypes Across Samples (%)") +
+    labs(x = element_blank(), y = "Percentage", title = "Distribution of Mutation Subtypes Across Samples (%)") +
     coord_flip() +
     scale_fill_brewer(palette = "Set3")+
     theme_minimal()+
@@ -183,7 +183,7 @@ transversion_transitions <- function(vcf_data){
   
   p <- ggplot(mutationCounts, aes(x = SAMPLE, y = percentage, fill = SUBTYPE)) +
     geom_bar(stat = "identity", position = "stack") +
-    labs(x = "Percentage", y = element_blank(), title = "Transversions-Transitions Distribution on Samples (%)") +
+    labs(x = element_blank(), y = "Percentage", title = "Transversions-Transitions Distribution on Samples (%)") +
     coord_flip() +
     scale_fill_brewer(palette = "Set3")+
     theme_minimal()+
@@ -209,7 +209,7 @@ insertion_deletions <- function(vcf_data){
   
   p <- ggplot(mutationCounts, aes(x = SAMPLE, y = percentage, fill = SUBTYPE)) +
     geom_bar(stat = "identity", position = "stack") +
-    labs(x = "Percentage", y = element_blank(), title = "Insertion-Deletion Distribution on Samples (%)") +
+    labs(x = element_blank(), y = "Percentage", title = "Insertion-Deletion Distribution on Samples (%)") +
     coord_flip() +
     scale_fill_brewer(palette = "Set3")+
     theme_minimal()+

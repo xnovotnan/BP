@@ -75,7 +75,7 @@ mutation_distribution <- function(vcf_tibble, subtypes=FALSE){
   
   p <- ggplot(mutationCounts, aes(x = CHROM, y = percentage, fill = TYPE)) +
     geom_bar(stat = "identity", position = "stack", show.legend = FALSE) +
-    labs(x = "Percentage", y = element_blank(), title = "Mutation Type Distribution Across Chromosomes (%)") +
+    labs(x = element_blank(), y = "Percentage", title = "Mutation Type Distribution Across Chromosomes (%)") +
     coord_flip() +
     scale_fill_brewer(palette = "Set3")+
     theme_minimal()+
@@ -172,8 +172,8 @@ snp_class_barplot <- function(vcf_tibble){
   p <- ggplot(vcf_tibble, aes(x = percentage, y = reorder(SNP_TYPE, n), fill = SNP_TYPE)) +
     geom_bar(stat = "identity", show.legend = FALSE) +
     labs(title = "SNP Substitution Type Distribution (%)", 
-         x = "Base Substitution", 
-         y = "Percentage") +
+         x = "Percentage", 
+         y = "Base Substitution") +
     theme_minimal() +
     theme(plot.title = element_text(hjust = 0.5, size = 14, face = "bold")) +
     geom_text(aes(x = percentage/2, label = label), size = 4, color = "black")+
