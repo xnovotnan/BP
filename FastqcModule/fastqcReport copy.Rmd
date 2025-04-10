@@ -1,0 +1,130 @@
+---
+title: "FastQC Analysis Report"
+output: pdf_document
+params:
+  filename: NA
+  read_R1: NA
+  filename_R1: NA
+  file_type_R1: NA
+  encoding_R1: NA
+  total_sequences_R1: NA
+  total_bases_R1: NA
+  poor_quality_R1: NA
+  sequence_length_R1: NA
+  per_base_quality_R1: NA
+  per_sequence_quality_R1: NA
+  per_base_sequence_content_R1: NA
+  per_base_n_content_R1: NA
+  sequence_length_distribution_R1: NA
+  duplication_levels_R1: NA
+  
+  read_R2: NA
+  filename_R2: NA
+  file_type_R2: NA
+  encoding_R2: NA
+  total_sequences_R2: NA
+  total_bases_R2: NA
+  poor_quality_R2: NA
+  sequence_length_R2: NA
+  per_base_quality_R2: NA
+  per_sequence_quality_R2: NA
+  per_base_sequence_content_R2: NA
+  per_base_n_content_R2: NA
+  sequence_length_distribution_R2: NA
+  duplication_levels_R2: NA
+---
+
+## File
+- **FastQC Folder:** `r params$filename`
+
+## Reference – Read R1
+- **Read**: `r params$read_R1`  
+- **Filename**: `r params$filename_R1`  
+- **File type**: `r params$file_type_R1`  
+- **Encoding**: `r params$encoding_R1`  
+- **Total sequences**: `r params$total_sequences_R1`  
+- **Total bases**: `r params$total_bases_R1`  
+- **Poor quality reads**: `r params$poor_quality_R1`  
+- **Sequence length**: `r params$sequence_length_R1`  
+
+## Reference – Read 2
+- **Read:** `r params$read_R2`
+- **Filename:** `r params$filename_R2`
+- **File Type:** `r params$file_type_R2`
+- **Encoding:** `r params$encoding_R2`
+- **Total Sequences:** `r params$total_sequences_R2`
+- **Total Bases:** `r params$total_bases_R2`
+- **Poor Quality Reads:** `r params$poor_quality_R2`
+- **Sequence Length:** `r params$sequence_length_R2`
+
+
+## Per Base Quality
+### Read R1
+```{r echo=FALSE, out.width="80%"}
+knitr::include_graphics(params$per_base_quality_R1)
+```
+
+### Read R2
+```{r echo=FALSE, out.width="80%"}
+knitr::include_graphics(params$per_base_quality_R2)
+```
+
+
+## Per Sequence Quality
+### Read R1
+```{r echo=FALSE, out.width="80%"}
+knitr::include_graphics(params$per_sequence_quality_R1)
+```
+
+### Read R2
+```{r echo=FALSE, out.width="80%"}
+knitr::include_graphics(params$per_sequence_quality_R2)
+```
+
+
+## Per Base Sequence Content
+### Read R1
+```{r echo=FALSE, out.width="80%"}
+knitr::include_graphics(params$per_base_sequence_content_R1)
+```
+
+### Read R2
+```{r echo=FALSE, out.width="80%"}
+knitr::include_graphics(params$per_base_sequence_content_R2)
+```
+
+
+## Per Base N Content
+### Read R1
+```{r echo=FALSE, out.width="80%"}
+knitr::include_graphics(params$per_base_n_content_R1)
+```
+
+### Read R2
+```{r echo=FALSE, out.width="80%"}
+knitr::include_graphics(params$per_base_n_content_R2)
+```
+
+
+## Sequence Length Distribution
+### Read R1
+```{r echo=FALSE, out.width="80%"}
+knitr::include_graphics(params$sequence_length_distribution_R1)
+```
+
+### Read R2
+```{r echo=FALSE, out.width="80%"}
+knitr::include_graphics(params$sequence_length_distribution_R2)
+```
+
+
+## Duplication Levels
+### Read R1
+```{r echo=FALSE, out.width="80%"}
+knitr::include_graphics(params$duplication_levels_R1)
+```
+
+### Read R2
+```{r echo=FALSE, out.width="80%"}
+knitr::include_graphics(params$duplication_levels_R2)
+```

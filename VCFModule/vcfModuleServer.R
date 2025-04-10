@@ -2,6 +2,7 @@ library(shiny)
 library(shinyWidgets)
 library(tinytex)
 source(file.path("VCFModule", "mutationAnalysis.R"))
+library(plotly)
 
 vcfModuleServer <- function(id) {
   moduleServer(id, function(input, output, session) {
@@ -78,7 +79,7 @@ vcfModuleServer <- function(id) {
       if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
       indel_length_med(data)
     })
-    output$indel_length <- renderPlot({
+    output$indel_length <- renderPlotly({
       data <- processed_data()
       if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
       indel_length(data)
@@ -100,7 +101,7 @@ vcfModuleServer <- function(id) {
       if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
       quality_med(data)
     })
-    output$quality_bar <- renderPlot({
+    output$quality_bar <- renderPlotly({
       data <- processed_data()
       if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
       quality_bar(data)
@@ -140,7 +141,7 @@ vcfModuleServer <- function(id) {
       if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
       read_depth_med(data)
     })
-    output$read_depth_density <- renderPlot({
+    output$read_depth_density <- renderPlotly({
       data <- processed_data()
       if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
       read_depth_density(data)
@@ -258,7 +259,7 @@ vcfModuleServer <- function(id) {
           column(8, plotOutput(ns("indel_stacked"))),
           column(6, verbatimTextOutput(ns("indel_length_avg"))),
           column(6, verbatimTextOutput(ns("indel_length_med"))),
-          column(8, plotOutput(ns("indel_length"))),
+          column(8, plotlyOutput(ns("indel_length"))),
           column(4, plotOutput(ns("indel_length_boxplot")))
         ),
         tags$hr(),
@@ -273,7 +274,7 @@ vcfModuleServer <- function(id) {
         fluidRow(
           column(6, verbatimTextOutput(ns("qual_avg"))),
           column(6, verbatimTextOutput(ns("qual_med"))),
-          column(6, plotOutput(ns("quality_bar"))),
+          column(6, plotlyOutput(ns("quality_bar"))),
           column(6, plotOutput(ns("quality_on_chroms")))
         ),
         tags$hr(),
@@ -303,7 +304,7 @@ vcfModuleServer <- function(id) {
         fluidRow(
           column(6, verbatimTextOutput(ns("read_depth_avg"))),
           column(6, verbatimTextOutput(ns("read_depth_med"))),
-          column(6, plotOutput(ns("read_depth_density"))),
+          column(6, plotlyOutput(ns("read_depth_density"))),
           column(6, plotOutput(ns("read_depth_on_chroms")))
         ),
         downloadButton(ns("download_vcf_pdf"), "Download PDF Report")

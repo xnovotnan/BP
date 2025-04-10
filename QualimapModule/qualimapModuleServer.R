@@ -27,6 +27,9 @@ qualimapModuleServer <- function(id) {
     })
 
     # Reference
+    output$bam_file <- renderText({
+      paste("BAM File:", qualimap_data()["bam file"])
+    })
     output$num_of_bases <- renderText({
       paste("Number of Bases:", qualimap_data()["number of bases"])
     })
@@ -58,7 +61,7 @@ qualimapModuleServer <- function(id) {
       paste("Number of Duplicated Reads:", qualimap_data()["number of duplicated reads (flagged)"])
     })
     output$duplication_rate_histogram <- renderImage({
-      file_path <- find_png(qualimap_folder_path(), "genome_uniq_read_starts_histogram.png")
+      file_path <- find_qualimap_png(qualimap_folder_path(), "genome_uniq_read_starts_histogram.png")
       list(src = file_path,
            contentType = "image/png",
            width = "100%")
@@ -67,7 +70,7 @@ qualimapModuleServer <- function(id) {
       paste("Mean Mapping Quality:", qualimap_data()["mean mapping quality"])
     })
     output$mapping_quality_histogram <- renderImage({
-      file_path <- find_png(qualimap_folder_path(), "genome_mapping_quality_histogram.png")
+      file_path <- find_qualimap_png(qualimap_folder_path(), "genome_mapping_quality_histogram.png")
       list(src = file_path,
            contentType = "image/png",
            width = "100%")
@@ -85,13 +88,13 @@ qualimapModuleServer <- function(id) {
       paste("Standard Deviation of Insert Size:", qualimap_data()["std insert size"])
     })
     output$insert_size_across_reference <- renderImage({
-      file_path <- find_png(qualimap_folder_path(), "genome_insert_size_across_reference.png")
+      file_path <- find_qualimap_png(qualimap_folder_path(), "genome_insert_size_across_reference.png")
       list(src = file_path,
            contentType = "image/png",
            width = "100%")
     }, deleteFile = FALSE)
     output$insert_size_histogram <- renderImage({
-      file_path <- find_png(qualimap_folder_path(), "genome_insert_size_histogram.png")
+      file_path <- find_qualimap_png(qualimap_folder_path(), "genome_insert_size_histogram.png")
       list(src = file_path,
            contentType = "image/png",
            width = "100%")
@@ -121,7 +124,7 @@ qualimapModuleServer <- function(id) {
       process_ACTG_content(qualimap_data())
     })
     output$cg_content_distribution <- renderImage({
-      file_path <- find_png(qualimap_folder_path(),"genome_gc_content_per_window.png")
+      file_path <- find_qualimap_png(qualimap_folder_path(),"genome_gc_content_per_window.png")
       list(src = file_path,
            contentType = "image/png",
            width = "100%")
@@ -136,6 +139,7 @@ qualimapModuleServer <- function(id) {
         file.copy("qualimapReport.Rmd", temp_report, overwrite = TRUE)
         params <- list(
           file_name = qualimap_folder_path(),
+          bam_file = qualimap_data()["bam file"],
           num_of_bases = qualimap_data()["number of bases"],
           num_of_contigs = qualimap_data()["number of contigs"],
           num_of_reads = qualimap_data()["number of reads"],
@@ -151,14 +155,14 @@ qualimapModuleServer <- function(id) {
           mean_coverage = qualimap_data()["mean coverageData"],
           std_coverage = qualimap_data()["std coverageData"],
           gc_percentage = qualimap_data()["GC percentage"],
-          duplication_rate_histogram = find_png(qualimap_folder_path(), "genome_uniq_read_starts_histogram.png"),
-          mapping_quality_histogram = find_png(qualimap_folder_path(), "genome_mapping_quality_histogram.png"),
-          insert_size_across_reference = find_png(qualimap_folder_path(), "genome_insert_size_across_reference.png"),
-          insert_size_histogram = find_png(qualimap_folder_path(), "genome_insert_size_histogram.png"),
+          duplication_rate_histogram = find_qualimap_png(qualimap_folder_path(), "genome_uniq_read_starts_histogram.png"),
+          mapping_quality_histogram = find_qualimap_png(qualimap_folder_path(), "genome_mapping_quality_histogram.png"),
+          insert_size_across_reference = find_qualimap_png(qualimap_folder_path(), "genome_insert_size_across_reference.png"),
+          insert_size_histogram = find_qualimap_png(qualimap_folder_path(), "genome_insert_size_histogram.png"),
           qualimap_coverage = process_qualimap_coverage(qualimap_folder_path()),
           qualimap_coverage_pc = process_qualimap_coverage_pc(qualimap_folder_path()),  
           actg_content_barplot = process_ACTG_content(qualimap_data()), 
-          cg_content_distribution = find_png(qualimap_folder_path(),"genome_gc_content_per_window.png")
+          cg_content_distribution = find_qualimap_png(qualimap_folder_path(),"genome_gc_content_per_window.png")
         )
         
         rmarkdown::render(temp_report, output_file = file,
@@ -184,6 +188,7 @@ qualimapModuleServer <- function(id) {
           )
         ),
         fluidRow(
+          column(12, verbatimTextOutput(ns("bam_file"))),
           column(6, verbatimTextOutput(ns("num_of_bases"))),
           column(6, verbatimTextOutput(ns("num_of_contigs")))
         ),

@@ -13,7 +13,7 @@ get_genome_results <- function(qualimap_folder){
 process_qualimap <- function(qualimap_folder) {
   lines <- get_genome_results(qualimap_folder)
   lines <- lines[!grepl('^>>>>>', lines)]
-  start_index <- grep("number of bases", lines) 
+  start_index <- grep("bam file", lines) 
   end_index <- grep("std coverageData", lines)
   lines <- lines[start_index:end_index]
   results <- list()
@@ -114,7 +114,7 @@ process_ACTG_content <- function(data){
 }
 
 # Graphs from QUALIMAP Folder
-find_png <- function(qualimap_folder, name){
+find_qualimap_png <- function(qualimap_folder, name){
   file_path <- file.path(qualimap_folder, paste("images_qualimapReport", name, sep="/"))
   if (!file.exists(file_path)) {
     return(NULL)

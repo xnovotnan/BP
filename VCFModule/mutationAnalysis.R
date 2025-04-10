@@ -2,8 +2,10 @@ library(tidyverse)
 library(magrittr)
 library(ggridges)
 library(scales)
-options(scipen = 999)
 library(ggrepel)
+library(plotly)
+options(scipen = 999)
+# library(ggthemes)
 
 # Data processing
 prepare_data <- function(vcf_file){
@@ -78,7 +80,7 @@ mutation_distribution <- function(vcf_tibble, subtypes=FALSE){
     labs(x = element_blank(), y = "Percentage", title = "Mutation Type Distribution Across Chromosomes (%)") +
     coord_flip() +
     scale_fill_brewer(palette = "Set3")+
-    theme_minimal()+
+    theme_classic()+
     theme(plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
           axis.text.x = element_text(size = 12),
           axis.text.y = element_text(size = 12))
@@ -128,7 +130,7 @@ snp_class_stacked <- function(vcf_tibble){
     labs(x = "Percentage",
          y = element_blank(), 
          title= "SNP Substitution Type Distribution Across Chromosomes (%)") +
-    theme_minimal() +
+    theme_classic() +
     scale_fill_brewer(palette = "Set3") +
     theme(plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
           axis.text.x = element_text(size = 12),
@@ -154,7 +156,7 @@ snp_class_boxplot <- function(vcf_tibble){
     labs(title = "Distribution of SNP Substitution Types (%)",
          x = "Base Substitution",
          y = "Percentage") +
-    theme_minimal()+
+    theme_classic()+
     theme(plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
           legend.title = element_blank(),
           axis.text.x = element_text(size = 12),
@@ -174,7 +176,7 @@ snp_class_barplot <- function(vcf_tibble){
     labs(title = "SNP Substitution Type Distribution (%)", 
          x = "Percentage", 
          y = "Base Substitution") +
-    theme_minimal() +
+    theme_classic() +
     theme(plot.title = element_text(hjust = 0.5, size = 14, face = "bold")) +
     geom_text(aes(x = percentage/2, label = label), size = 4, color = "black")+
     scale_fill_brewer(palette = "Set3")
@@ -223,7 +225,7 @@ indel_stacked <- function(vcf_tibble){
     labs(x = "Percentage", 
          y = element_blank(), 
          title= "Insertions and Deletions Across Chromosomes (%)") +
-    theme_minimal() +
+    theme_classic() +
     scale_fill_brewer(palette = "Set3") +
     theme(legend.position = "right",
           plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
@@ -245,17 +247,23 @@ indel_length_med <- function(vcf_tibble){
 indel_length <- function(vcf_tibble){
   vcf_tibble %<>% filter(TYPE == "INDEL") %>%
     mutate(length = abs(nchar(ALT) - nchar(REF)))
+  
   p <- ggplot(vcf_tibble, aes(x = length)) +
-    geom_histogram(binwidth = 1, position = "dodge", color="purple") +
+    geom_histogram(aes(y = ..density..),
+                   binwidth = 1, 
+                   position = "dodge", 
+                   fill = "purple",
+                   alpha = 0.6) +
+    # geom_density(color = "darkblue", size = 1.2) +  # density plot
     labs(x = "Length (bp)", 
          y = "Mutation Count",
          title = "Distribution of INDEL Sizes") +
-    theme_minimal() +
+    theme_classic() +
     theme(legend.position = "none", 
-          plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
-          axis.text.x = element_text(size = 12),
-          axis.text.y = element_text(size = 12))
-  p
+          plot.title = element_text(hjust = 0.5, size = 12, face = "bold"),
+          axis.text.x = element_text(size = 10),
+          axis.text.y = element_text(size = 10))
+  ggplotly(p)
 }
 indel_length_boxplot <- function(vcf_tibble){
   vcf_tibble %<>% filter(TYPE == "INDEL") %>%
@@ -266,7 +274,7 @@ indel_length_boxplot <- function(vcf_tibble){
     labs(title= "INDEL Length Distribution by Type",
          x = "Type", 
          y = "Length (bp)") +
-    theme_minimal() +
+    theme_classic() +
     scale_fill_brewer(palette = "Set3")+
     theme(axis.text.x = element_text(size = 12),
           axis.text.y = element_text(size = 12),
@@ -283,19 +291,19 @@ quality_med <- function(vcf_tibble){
 }
 quality_bar <- function(vcf_tibble){
   p <- ggplot(vcf_tibble, aes(x=QUAL)) +
-    geom_bar(color="lightgreen",alpha=0.5) +
+    geom_bar(fill="lightgreen",alpha=0.5) +
     labs(title = "Quality Across Genome", 
          x = "Position", 
          y="Quality") +
-    theme_minimal() +
+    theme_classic() +
     theme(legend.position = "none",  
-          plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
-          axis.text.x = element_text(size = 12),
-          axis.text.y = element_text(size = 12),
-          axis.title.x = element_text(size = 12),
-          axis.title.y = element_text(size = 12))+
+          plot.title = element_text(hjust = 0.5, size = 12, face = "bold"),
+          axis.text.x = element_text(size = 10),
+          axis.text.y = element_text(size = 10),
+          axis.title.x = element_text(size = 10),
+          axis.title.y = element_text(size = 10))+
     scale_x_continuous(labels = comma)
-  p
+  ggplotly(p)
 }
 quality_on_chroms <- function(vcf_tibble){
   p <- ggplot(vcf_tibble, aes(x=CHROM, y=QUAL)) +
@@ -303,7 +311,7 @@ quality_on_chroms <- function(vcf_tibble){
     labs(title = "Quality Across Chromosomes",
          x = element_blank(),
          y = "Quality") +
-    theme_minimal() +
+    theme_classic() +
     theme(legend.position = "none",  
           plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
           axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = 1, size=12),
@@ -324,7 +332,7 @@ allele_freq_hexbin <- function(vcf_tibble){
     labs(title = "Allele Frequency Across the Genome", 
          x = "Position", 
          y="Allele Frequency") +
-    theme_minimal() +
+    theme_classic() +
     scale_x_continuous(labels = comma)+
     theme(legend.position = "none", 
           plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
@@ -340,7 +348,7 @@ allele_freq_on_chroms <- function(vcf_tibble){
     labs(title = "Allele Frequency Across Chromosomes",
          x= "Allele Frequency",
          y=element_blank()) +
-    theme_minimal() +
+    theme_classic() +
     theme(legend.position = "none", 
           plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
           axis.text.x = element_text(size = 12),
@@ -357,16 +365,16 @@ read_depth_med <- function(vcf_tibble){
 }
 read_depth_density <- function(vcf_tibble){
   p <- ggplot(vcf_tibble, aes(x=DP)) +
-    geom_bar(color="lightgreen",alpha=0.5) +
+    geom_bar(fill="lightgreen",alpha=0.5) +
     labs(title = "Read Depth Across the Genome", 
          x = "Position", 
          y="Read Depth") +
-    theme_minimal() +
+    theme_classic() +
     theme(legend.position = "none", 
-          plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
-          axis.text.x = element_text(size = 12),
-          axis.text.y = element_text(size = 12))
-  p
+          plot.title = element_text(hjust = 0.5, size = 12, face = "bold"),
+          axis.text.x = element_text(size = 10),
+          axis.text.y = element_text(size = 10))
+  ggplotly(p)
 }
 read_depth_on_chroms <- function(vcf_tibble){
   p <- ggplot(vcf_tibble, aes(x=CHROM, y=DP)) +
@@ -374,15 +382,13 @@ read_depth_on_chroms <- function(vcf_tibble){
     labs(title = "Read depth Across Chromosomes",
          x = element_blank(),
          y = "Read Depth") +
-    theme_minimal() +
+    theme_classic() +
     theme(legend.position = "none",  
           plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
           axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = 1, size=12),
           axis.text.y = element_text(size = 12))
   p
 }
-
-
 
 
 

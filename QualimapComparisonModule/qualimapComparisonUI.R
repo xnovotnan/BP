@@ -3,7 +3,7 @@ library(shinyWidgets)
 library(shinyFiles)
 
 # UI komponent pre QUALIMAP porovnanie
-comparisonModuleUI <- function(id) {
+qualimapComparisonUI <- function(id) {
   ns <- NS(id)
   tagList(
     tags$h3(

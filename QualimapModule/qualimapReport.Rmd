@@ -3,6 +3,7 @@ title: "Qualimap Analysis Report"
 output: pdf_document
 params:
   file_name: NA
+  bam_file: NA
   num_of_bases: NA
   num_of_contigs: NA
   num_of_reads: NA
@@ -30,6 +31,7 @@ params:
 
 ## File
 - **Qualimap Folder:** `r params$file_name`
+- **BAM File:** `r params$bam_file`
 
 ## Reference
 
