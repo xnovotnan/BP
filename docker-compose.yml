@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  build-app:
+    platform: linux/amd64
+    build:
+      platforms: 
+        - linux/amd64
+      context: .
+    ports:
+      - "3838:3838"
+    volumes:
+      - .:/srv/shiny-server
+      - ${HOME}:/home/shiny

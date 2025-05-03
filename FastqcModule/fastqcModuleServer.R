@@ -17,12 +17,16 @@ fastqcModuleServer <- function(id) {
     fastqc_data_R1 <- reactive({
       folder_path <- fastqc_folder_path()
       req(folder_path)
-      process_fastqc(folder_path, "R1")
+      withProgress(message = "Preprocessing first read...", value = 0, {
+        process_fastqc(folder_path, "R1")
+      })
     })
     fastqc_data_R2 <- reactive({
       folder_path <- fastqc_folder_path()
       req(folder_path)
-      process_fastqc(folder_path, "R2")
+      withProgress(message = "Preprocessing second read...", value = 0, {
+        process_fastqc(folder_path, "R2")
+      })
     })
     
     output$selected_fastqc <- renderText({
@@ -175,45 +179,54 @@ fastqcModuleServer <- function(id) {
     output$download_fastqc_pdf <- downloadHandler(
       filename = "fastqcReport.pdf",
       content = function(file) {
-        temp_report <- file.path("FastqcModule", "fastqcReport.Rmd")
-        file.copy("fastqcReport.Rmd", temp_report, overwrite = TRUE)
-        params <- list(
-          filename = paste0(fastqc_folder_path()),
-          read_R1 = paste0("Read: R1"),
-          filename_R1 = fastqc_data_R1()["Filename"],
-          file_type_R1 = fastqc_data_R1()["File type"],
-          encoding_R1 = fastqc_data_R1()["Encoding"],
-          total_sequences_R1 = fastqc_data_R1()["Total Sequences"],
-          total_bases_R1 = fastqc_data_R1()["Total Bases"],
-          poor_quality_R1 = fastqc_data_R1()["Sequences flagged as poor quality"],
-          sequence_length_R1 = fastqc_data_R1()["Sequence length"],
-          per_base_quality_R1 = find_fastqc_png(fastqc_folder_path(), "R1", "per_base_quality.png"),
-          per_sequence_quality_R1 = find_fastqc_png(fastqc_folder_path(), "R1", "per_sequence_quality.png"),
-          per_base_sequence_content_R1 = find_fastqc_png(fastqc_folder_path(), "R1", "per_base_sequence_content.png"),
-          per_base_n_content_R1 = find_fastqc_png(fastqc_folder_path(), "R1", "per_base_n_content.png"),
-          sequence_length_distribution_R1 = find_fastqc_png(fastqc_folder_path(), "R1", "sequence_length_distribution.png"),
-          duplication_levels_R1 = find_fastqc_png(fastqc_folder_path(), "R1", "duplication_levels.png"),
-
-          read_R2 = paste0("Read: R2"),
-          filename_R2 = fastqc_data_R2()["Filename"],
-          file_type_R2 = fastqc_data_R2()["File type"],
-          encoding_R2 = fastqc_data_R2()["Encoding"],
-          total_sequences_R2 = fastqc_data_R2()["Total Sequences"],
-          total_bases_R2 = fastqc_data_R2()["Total Bases"],
-          poor_quality_R2 = fastqc_data_R2()["Sequences flagged as poor quality"],
-          sequence_length_R2 = fastqc_data_R2()["Sequence length"],
-          per_base_quality_R2 = find_fastqc_png(fastqc_folder_path(), "R2", "per_base_quality.png"),
-          per_sequence_quality_R2 = find_fastqc_png(fastqc_folder_path(), "R2", "per_sequence_quality.png"),
-          per_base_sequence_content_R2 = find_fastqc_png(fastqc_folder_path(), "R2", "per_base_sequence_content.png"),
-          per_base_n_content_R2 = find_fastqc_png(fastqc_folder_path(), "R2", "per_base_n_content.png"),
-          sequence_length_distribution_R2 = find_fastqc_png(fastqc_folder_path(), "R2", "sequence_length_distribution.png"),
-          duplication_levels_R2 = find_fastqc_png(fastqc_folder_path(), "R2", "duplication_levels.png")
-        )
-        rmarkdown::render(temp_report, output_file = file,
-                          params = params,
-                          envir = new.env(parent = globalenv()))
+        withProgress(message = "Generating FASTQC report...", value = 0, {
+          temp_report <- file.path("FastqcModule", "fastqcReport.Rmd")
+          file.copy("fastqcReport.Rmd", temp_report, overwrite = TRUE)
+          incProgress(0.2, detail = "Loading FASTQC data...")
+          params <- list(
+            filename = paste0(fastqc_folder_path()),
+            read_R1 = "Read: R1",
+            filename_R1 = fastqc_data_R1()["Filename"],
+            file_type_R1 = fastqc_data_R1()["File type"],
+            encoding_R1 = fastqc_data_R1()["Encoding"],
+            total_sequences_R1 = fastqc_data_R1()["Total Sequences"],
+            total_bases_R1 = fastqc_data_R1()["Total Bases"],
+            poor_quality_R1 = fastqc_data_R1()["Sequences flagged as poor quality"],
+            sequence_length_R1 = fastqc_data_R1()["Sequence length"],
+            per_base_quality_R1 = find_fastqc_png(fastqc_folder_path(), "R1", "per_base_quality.png"),
+            per_sequence_quality_R1 = find_fastqc_png(fastqc_folder_path(), "R1", "per_sequence_quality.png"),
+            per_base_sequence_content_R1 = find_fastqc_png(fastqc_folder_path(), "R1", "per_base_sequence_content.png"),
+            per_base_n_content_R1 = find_fastqc_png(fastqc_folder_path(), "R1", "per_base_n_content.png"),
+            sequence_length_distribution_R1 = find_fastqc_png(fastqc_folder_path(), "R1", "sequence_length_distribution.png"),
+            duplication_levels_R1 = find_fastqc_png(fastqc_folder_path(), "R1", "duplication_levels.png"),
+            
+            read_R2 = "Read: R2",
+            filename_R2 = fastqc_data_R2()["Filename"],
+            file_type_R2 = fastqc_data_R2()["File type"],
+            encoding_R2 = fastqc_data_R2()["Encoding"],
+            total_sequences_R2 = fastqc_data_R2()["Total Sequences"],
+            total_bases_R2 = fastqc_data_R2()["Total Bases"],
+            poor_quality_R2 = fastqc_data_R2()["Sequences flagged as poor quality"],
+            sequence_length_R2 = fastqc_data_R2()["Sequence length"],
+            per_base_quality_R2 = find_fastqc_png(fastqc_folder_path(), "R2", "per_base_quality.png"),
+            per_sequence_quality_R2 = find_fastqc_png(fastqc_folder_path(), "R2", "per_sequence_quality.png"),
+            per_base_sequence_content_R2 = find_fastqc_png(fastqc_folder_path(), "R2", "per_base_sequence_content.png"),
+            per_base_n_content_R2 = find_fastqc_png(fastqc_folder_path(), "R2", "per_base_n_content.png"),
+            sequence_length_distribution_R2 = find_fastqc_png(fastqc_folder_path(), "R2", "sequence_length_distribution.png"),
+            duplication_levels_R2 = find_fastqc_png(fastqc_folder_path(), "R2", "duplication_levels.png")
+          )
+          incProgress(0.5, detail = "Rendering report...")
+          rmarkdown::render(
+            temp_report,
+            output_file = file,
+            params = params,
+            envir = new.env(parent = globalenv())
+          )
+          incProgress(1, detail = "Report completed!")
+        })
       }
     )
+    
 
     # COMBINED fastqc ANALYSIS
     output$fastqc_module_combined <- renderUI({

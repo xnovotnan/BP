@@ -17,7 +17,9 @@ comparisonModuleServer <- function(id) {
     processed_data <- reactive({
       folder <- comparison_folder_path()
       req(folder)
-      process_qualimap_folders(folder)
+      withProgress(message = "Preprocessing files...", value = 0, {
+        process_qualimap_folders(folder)
+      })
     })
   
     output$selected_comparison_path <- renderText({
@@ -58,10 +60,16 @@ comparisonModuleServer <- function(id) {
     output$insert_size_comparison <- renderPlot({
       insert_size_comparison(processed_data())
     })
+    output$insert_size_mean_comparison <- renderPlot({
+      insert_size_mean_comparison(processed_data())
+    })
     
     # Data Coverage
     output$coverage_comparison <- renderPlot({
       coverage_comparison(processed_data())
+    })
+    output$coverage_mean_comparison <- renderPlot({
+      coverage_mean_comparison(processed_data())
     })
     
     # ACTG Content
@@ -74,30 +82,41 @@ comparisonModuleServer <- function(id) {
     
     # PDF REPORT
     output$download_comparison_pdf <- downloadHandler(
-      filename = "comparisonReport.pdf",
+      filename = "QUALIMAPcomparisonReport.pdf",
       content = function(file) {
-        temp_report <- file.path("QualimapComparisonModule", "qualimapComparisonReport.Rmd") 
-        file.copy("qualimapComparisonReport.Rmd", temp_report, overwrite = TRUE)
-        params <- list(
-          folder_name = comparison_folder_path(),
-          bases_comparison = bases_contigs_comparison(processed_data(), "number_of_bases", "Number of Bases (bp)"),
-          contig_comparison = bases_contigs_comparison(processed_data(), "number_of_contigs", "Number of Contigs"),
-          reads_comparison = reads_comparison(processed_data()),
-          mapped_paired_reads_comparison = mapped_paired_reads(processed_data()),
-          mapped_paired_reads_singletons_comparison = mapped_paired_reads_singletons(processed_data()),
-          mapped_bases_comparison = mapped_bases_comparison(processed_data()),
-          duplicated_reads_comparison = duplicated_reads(processed_data()),
-          mapping_quality_comparison = mapping_quality_comparison(processed_data()),
-          insert_size_comparison = insert_size_comparison(processed_data()),
-          coverage_comparison = coverage_comparison(processed_data()),
-          gc_percentage_comparison = gc_comparison(processed_data()),
-          actg_content_comparison = stacked_actg(processed_data())
-        )
-        rmarkdown::render(temp_report, output_file = file,
-                          params = params,
-                          envir = new.env(parent = globalenv()))
+        withProgress(message = "Generating comparison report...", value = 0, {
+          temp_report <- file.path("QualimapComparisonModule", "qualimapComparisonReport.Rmd") 
+          file.copy("qualimapReport.Rmd", temp_report, overwrite = TRUE)
+          incProgress(0.2, detail = "Loading comparison data...")
+          params <- list(
+            folder_name = comparison_folder_path(),
+            bases_comparison = bases_contigs_comparison(processed_data(), "number_of_bases", "Number of Bases (bp)"),
+            contig_comparison = bases_contigs_comparison(processed_data(), "number_of_contigs", "Number of Contigs"),
+            reads_comparison = reads_comparison(processed_data()),
+            mapped_paired_reads_comparison = mapped_paired_reads(processed_data()),
+            mapped_paired_reads_singletons_comparison = mapped_paired_reads_singletons(processed_data()),
+            mapped_bases_comparison = mapped_bases_comparison(processed_data()),
+            duplicated_reads_comparison = duplicated_reads(processed_data()),
+            mapping_quality_comparison = mapping_quality_comparison(processed_data()),
+            insert_size_comparison = insert_size_comparison(processed_data()),
+            insert_size_mean_comparison = insert_size_mean_comparison(processed_data()),
+            coverage_comparison = coverage_comparison(processed_data()),
+            coverage_mean_comparison = coverage_mean_comparison(processed_data()),
+            gc_percentage_comparison = gc_comparison(processed_data()),
+            actg_content_comparison = stacked_actg(processed_data())
+          )
+          incProgress(0.5, detail = "Rendering report...")
+          rmarkdown::render(
+            temp_report,
+            output_file = file,
+            params = params,
+            envir = new.env(parent = globalenv())
+          )
+          incProgress(1, detail = "Report completed!")
+        })
       }
     )
+    
     
     # COMBINED QUALIMAP COMPARISON
     output$qualimap_module_compare <- renderUI({
@@ -146,7 +165,8 @@ comparisonModuleServer <- function(id) {
           )
         ),
         fluidRow(
-          column(12, plotOutput(ns("insert_size_comparison"))),
+          column(6, plotOutput(ns("insert_size_comparison"))),
+          column(6, plotOutput(ns("insert_size_mean_comparison")))
         ),
         tags$hr(),
         tags$h4(
@@ -158,7 +178,8 @@ comparisonModuleServer <- function(id) {
           )
         ),
         fluidRow(
-          column(12, plotOutput(ns("coverage_comparison")))
+          column(6, plotOutput(ns("coverage_comparison"))),
+          column(6, plotOutput(ns("coverage_mean_comparison")))
         ),
         tags$hr(),
         tags$h4(

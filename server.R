@@ -12,9 +12,8 @@ server <- function(input, output, session) {
   vcfComparisonServer("vcfComparison")
   fastqcModuleServer("fastqc")
   
+  
   shiny::onStop(function() {
     unlink("Temp/*", recursive = TRUE)
   })
 }
-
-

@@ -5,41 +5,42 @@ library(scales)
 library(ggrepel)
 library(plotly)
 options(scipen = 999)
-# library(ggthemes)
 
 # Data processing
 prepare_data <- function(vcf_file){
-  incProgress(0.1, detail = "Reading file...")
-  vcf_tibble <- vroom::vroom(
-    file = vcf_file,
-    delim = "\t",
-    comment = "##"
-  )
-  incProgress(0.3, detail = "Processing data...")
-  vcf_tibble %<>% 
-    rename("VALUES" = last(colnames(.)), "CHROM" = first(colnames(.))) %>%
-    mutate(
-      GT = str_split(VALUES, ":") %>% map_chr(~ .x[1]),
-      AD = str_split(VALUES, ":") %>% map_chr(~ .x[2]) %>% str_split(",") %>% map_int(~ as.integer(.x[1])),
-      DP = str_split(VALUES, ":") %>% map_int(~ as.integer(.x[3])),
-      TYPE = ifelse(nchar(REF) == 1 & nchar(ALT) == 1,"SNP", "INDEL")) %>%
-    filter(QUAL > 200, 
-           GT %in% c("1|1", "0|1", "1|0", "1/1", "0/1", "1/0"),
-           DP>0,
-           CHROM != "chrM")
-  incProgress(0.7, detail = "Categorizing mutations...")
-  purines <- c("A", "G")
-  pyrimidines <- c("C", "T")
-  vcf_tibble %<>% mutate(
-    SUBTYPE = ifelse(TYPE == "SNP", 
-                     ifelse((REF %in% purines & ALT %in% purines) | (REF %in% pyrimidines & ALT %in% pyrimidines), "Transition", "Transversion"), 
-                     ifelse(nchar(REF) > nchar(ALT),"Deletion", "Insertion")),
-    AF = round(AD/DP, 2)
-  )
-  incProgress(0.9, detail = "Completing preprocessing...")
-  vcf_tibble$CHROM <- factor(vcf_tibble$CHROM, levels = c(paste0("chr", 1:22), "chrX", "chrY", "chrM"))
-  vcf_tibble %<>% select(c("CHROM", "POS", "REF", "ALT", "TYPE", "SUBTYPE", "QUAL", "GT", "AD", "DP", "AF"))
-  vcf_tibble
+  suppressMessages({
+    incProgress(0.1, detail = "Reading file...")
+    vcf_tibble <- vroom::vroom(
+      file = vcf_file,
+      delim = "\t",
+      comment = "##"
+    )
+    incProgress(0.3, detail = "Processing data...")
+    vcf_tibble %<>% 
+      rename("VALUES" = last(colnames(.)), "CHROM" = first(colnames(.))) %>%
+      mutate(
+        GT = str_split(VALUES, ":") %>% map_chr(~ .x[1]),
+        AD = str_split(VALUES, ":") %>% map_chr(~ .x[2]) %>% str_split(",") %>% map_int(~ as.integer(.x[1])),
+        DP = str_split(VALUES, ":") %>% map_int(~ as.integer(.x[3])),
+        TYPE = ifelse(nchar(REF) == 1 & nchar(ALT) == 1,"SNP", "INDEL")) %>%
+      filter(QUAL > 200, 
+             GT %in% c("1|1", "0|1", "1|0", "1/1", "0/1", "1/0"),
+             DP>0,
+             CHROM != "chrM")
+    incProgress(0.7, detail = "Categorizing mutations...")
+    purines <- c("A", "G")
+    pyrimidines <- c("C", "T")
+    vcf_tibble %<>% mutate(
+      SUBTYPE = ifelse(TYPE == "SNP", 
+                       ifelse((REF %in% purines & ALT %in% purines) | (REF %in% pyrimidines & ALT %in% pyrimidines), "Transition", "Transversion"), 
+                       ifelse(nchar(REF) > nchar(ALT),"Deletion", "Insertion")),
+      AF = round(AD/DP, 2)
+    )
+    incProgress(0.9, detail = "Completing preprocessing...")
+    vcf_tibble$CHROM <- factor(vcf_tibble$CHROM, levels = c(paste0("chr", 1:22), "chrX", "chrY", "chrM"))
+    vcf_tibble %<>% select(c("CHROM", "POS", "REF", "ALT", "TYPE", "SUBTYPE", "QUAL", "GT", "AD", "DP", "AF"))
+    vcf_tibble
+  })
 }
 
 # Mutation Counts
@@ -50,7 +51,7 @@ mutation_donut <- function(vcf_tibble, subtypes=FALSE){
     summarise(count = n(), .groups = "drop") %>%
     mutate(percentage = round(count * 100 / sum(count), 2))
   
-  mutationCounts <- mutationCounts %>%
+  mutationCounts %<>%
     mutate(csum = rev(cumsum(rev(percentage))), 
            pos = percentage / 2 + lead(csum, 1),
            pos = if_else(is.na(pos), percentage / 2, pos))
@@ -263,7 +264,7 @@ indel_length <- function(vcf_tibble){
           plot.title = element_text(hjust = 0.5, size = 12, face = "bold"),
           axis.text.x = element_text(size = 10),
           axis.text.y = element_text(size = 10))
-  ggplotly(p)
+  p
 }
 indel_length_boxplot <- function(vcf_tibble){
   vcf_tibble %<>% filter(TYPE == "INDEL") %>%
@@ -290,20 +291,21 @@ quality_med <- function(vcf_tibble){
   sprintf("Median Quality: %s", median(vcf_tibble$QUAL))
 }
 quality_bar <- function(vcf_tibble){
-  p <- ggplot(vcf_tibble, aes(x=QUAL)) +
-    geom_bar(fill="lightgreen",alpha=0.5) +
-    labs(title = "Quality Across Genome", 
+  p <- ggplot(vcf_tibble, aes(x=seq_along(QUAL), y = QUAL)) +
+    geom_hex() +
+    labs(title = "Quality Across the Genome", 
          x = "Position", 
          y="Quality") +
     theme_classic() +
-    theme(legend.position = "none",  
-          plot.title = element_text(hjust = 0.5, size = 12, face = "bold"),
-          axis.text.x = element_text(size = 10),
-          axis.text.y = element_text(size = 10),
-          axis.title.x = element_text(size = 10),
-          axis.title.y = element_text(size = 10))+
-    scale_x_continuous(labels = comma)
-  ggplotly(p)
+    scale_x_continuous(labels = comma) +
+    scale_fill_gradientn(colors = c("lightgreen", "green4")) +
+    theme(plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
+          axis.text.x = element_text(size = 12),
+          axis.text.y = element_text(size = 12),
+          axis.title.x = element_text(size = 12),
+          axis.title.y = element_text(size = 12),
+          legend.title = element_blank())
+  p
 }
 quality_on_chroms <- function(vcf_tibble){
   p <- ggplot(vcf_tibble, aes(x=CHROM, y=QUAL)) +
@@ -333,13 +335,14 @@ allele_freq_hexbin <- function(vcf_tibble){
          x = "Position", 
          y="Allele Frequency") +
     theme_classic() +
-    scale_x_continuous(labels = comma)+
-    theme(legend.position = "none", 
-          plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
+    scale_x_continuous(labels = comma) +
+    scale_fill_gradientn(colors = c("skyblue1", "blue4")) +
+    theme(plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
           axis.text.x = element_text(size = 12),
           axis.text.y = element_text(size = 12),
           axis.title.x = element_text(size = 12),
-          axis.title.y = element_text(size = 12))
+          axis.title.y = element_text(size = 12),
+          legend.title = element_blank())
   p
 }
 allele_freq_on_chroms <- function(vcf_tibble){
@@ -364,17 +367,21 @@ read_depth_med <- function(vcf_tibble){
   sprintf("Median Read Depth: %s", median(vcf_tibble$DP))
 }
 read_depth_density <- function(vcf_tibble){
-  p <- ggplot(vcf_tibble, aes(x=DP)) +
-    geom_bar(fill="lightgreen",alpha=0.5) +
+  p <- ggplot(vcf_tibble, aes(x=seq_along(DP), y = DP)) +
+    geom_hex() +
     labs(title = "Read Depth Across the Genome", 
          x = "Position", 
          y="Read Depth") +
     theme_classic() +
-    theme(legend.position = "none", 
-          plot.title = element_text(hjust = 0.5, size = 12, face = "bold"),
-          axis.text.x = element_text(size = 10),
-          axis.text.y = element_text(size = 10))
-  ggplotly(p)
+    scale_x_continuous(labels = comma) +
+    scale_fill_gradientn(colors = c("lightgreen", "green4")) +
+    theme(plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
+          axis.text.x = element_text(size = 12),
+          axis.text.y = element_text(size = 12),
+          axis.title.x = element_text(size = 12),
+          axis.title.y = element_text(size = 12),
+          legend.title = element_blank())
+  p
 }
 read_depth_on_chroms <- function(vcf_tibble){
   p <- ggplot(vcf_tibble, aes(x=CHROM, y=DP)) +
@@ -389,6 +396,3 @@ read_depth_on_chroms <- function(vcf_tibble){
           axis.text.y = element_text(size = 12))
   p
 }
-
-
-

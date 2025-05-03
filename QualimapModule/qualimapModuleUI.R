@@ -7,7 +7,7 @@ qualimapModuleUI <- function(id) {
   ns <- NS(id)
   tagList(
     tags$h3(
-      "Qualimap Statistics Summary",
+      "Qualimap Analysis",
       tags$span(
         icon("info-circle"),
         title = "Analyze sequencing quality metrics from one sample, such as read mapping, coverage, GC content, and insert size",

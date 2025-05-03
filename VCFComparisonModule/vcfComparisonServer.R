@@ -22,13 +22,33 @@ vcfComparisonServer <- function(id) {
     processed_data <- reactive({
       folder <- vcf_comparison_folder_path()
       req(folder)
-      prepare_vcf_files(folder)
+      withProgress(message = "Preprocessing files...", value = 0, {
+        prepare_vcf_files(folder)
+      })
+    })
+    filtered_data <- reactive({
+      data <- processed_data()
+      req(data)
+      if (input$family_select != "All") {data %<>% filter(family == input$family_select)}
+      data
     })
     observe({
       data <- processed_data()
       req(data)
       families <- c("All", unique(data$family))
       updateSelectInput(session, "family_select", choices = as.character(families), selected = families[1])
+    })
+    observe({
+      data <- processed_data()
+      req(data)
+      files <- c("-" ,unique(data$name))
+      updateSelectInput(session, "first_file_select", choices = as.character(files))
+    })
+    observe({
+      data <- processed_data()
+      req(data)
+      files <- c("-" ,unique(data$name))
+      updateSelectInput(session, "second_file_select", choices = as.character(files))
     })
     
     # Mutation Counts
@@ -98,30 +118,49 @@ vcfComparisonServer <- function(id) {
       read_depth(data)
     })
     
+    # Venn diagram
+    output$venn_diagram <- renderPlot({
+      data <- processed_data()
+      file1 <- input$first_file_select
+      file2 <- input$second_file_select
+      req(file1 != "-")
+      req(file2 != "-")
+      venn_diagram(file1, file2, data)
+    })
+    
+    
     # PDF REPORT
     output$download_vcf_comparison_pdf <- downloadHandler(
-      filename = "vcfComparisonReport.pdf",
+      filename ="vcfComparisonReport.pdf",
       content = function(file) {
-        temp_report <- file.path("VCFComparisonModule", "vcfComparisonReport.Rmd")
-        file.copy("vcfComparisonReport.Rmd", temp_report, overwrite = TRUE)
-        params <- list(
-          folder_name = vcf_comparison_folder_path(),
-          selected_family = input$family_select,
-          num_of_mutation = num_of_mutation(processed_data()),
-          mutation_heatmap = mutation_heatmap(processed_data()),
-          mutation_types_distribution = mutation_types_distribution(processed_data()),
-          mutation_subtypes_distribution = mutation_subtypes_distribution(processed_data()),
-          snp_class_comparison = snp_class_comparison(processed_data()),
-          transversion_transitions = transversion_transitions(processed_data()),
-          insertion_deletions = insertion_deletions(processed_data()),
-          indel_len_boxplot = indel_len_boxplot(processed_data()),
-          quality_boxplot = quality_boxplot(processed_data()),
-          frequency_ridges = frequency_ridges(processed_data()),
-          read_depth = read_depth(processed_data())
-        )
-        rmarkdown::render(temp_report, output_file = file,
-                          params = params,
-                          envir = new.env(parent = globalenv()))
+        withProgress(message = "Generating VCF comparison report...", value = 0, {
+          temp_report <- file.path("VCFComparisonModule", "vcfComparisonReport.Rmd")
+          file.copy("vcfComparisonReport.Rmd", temp_report, overwrite = TRUE)
+          incProgress(0.2, detail = "Loading comparison data...")
+          params <- list(
+            folder_name = vcf_comparison_folder_path(),
+            selected_family = input$family_select,
+            num_of_mutation = num_of_mutation(processed_data()),
+            mutation_heatmap = mutation_heatmap(processed_data()),
+            mutation_types_distribution = mutation_types_distribution(processed_data()),
+            mutation_subtypes_distribution = mutation_subtypes_distribution(processed_data()),
+            snp_class_comparison = snp_class_comparison(processed_data()),
+            transversion_transitions = transversion_transitions(processed_data()),
+            insertion_deletions = insertion_deletions(processed_data()),
+            indel_len_boxplot = indel_len_boxplot(processed_data()),
+            quality_boxplot = quality_boxplot(processed_data()),
+            frequency_ridges = frequency_ridges(processed_data()),
+            read_depth = read_depth(processed_data())
+          )
+          incProgress(0.5, detail = "Rendering report...")
+          rmarkdown::render(
+            temp_report,
+            output_file = file,
+            params = params,
+            envir = new.env(parent = globalenv())
+          )
+          incProgress(1, detail = "Report completed!")
+        })
       }
     )
     
@@ -129,6 +168,9 @@ vcfComparisonServer <- function(id) {
     # COMBINED VCF COMPARISON
     output$vcf_module_compare <- renderUI({
       req(processed_data())
+      if (length(processed_data())==0){
+        stop("Folder does not contain any VCF files.")
+      }
       ns <- NS(id)
       tagList(
         tags$h5(
@@ -222,7 +264,29 @@ vcfComparisonServer <- function(id) {
         fluidRow(
           column(12, plotOutput(ns("read_depth")))
         ),
-        downloadButton(ns("download_vcf_comparison_pdf"), "Download PDF Report")
+        tags$h4(
+          "Venn Diagrams",
+          tags$span(
+            icon("info-circle"),
+            title = "",
+            style = "cursor: help; color: black; font-size: 12px; vertical-align: middle;"
+          )
+        ),
+        tags$h5("Choose Files"),
+        fluidRow(
+          column(6, selectInput(inputId = ns("first_file_select"), 
+                                label = "Select First File:", 
+                                choices = c(""), 
+                                selected = ""))
+        ),
+        fluidRow(
+          column(6, selectInput(inputId = ns("second_file_select"), 
+                                label = "Select Second File:", 
+                                choices = c(""), 
+                                selected = ""))
+        ),
+        fluidRow(column(12, plotOutput(ns("venn_diagram")))),
+        downloadButton(ns("download_vcf_comparison_pdf"), "Download PDF Report"),
       )
     })
     

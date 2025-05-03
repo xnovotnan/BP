@@ -35,6 +35,7 @@ process_qualimap_folders <- function(comparison_folder) {
   
   subdirs <- list.dirs(comparison_folder, full.names = TRUE, recursive = FALSE)
   for (folder in subdirs) {
+    incProgress(0.1, detail = "Processing file...")
     file_path <- file.path(folder, "genome_results.txt")
     if (file.exists(file_path)) {
       folder_results <- tibble(sample = basename(folder))
@@ -61,7 +62,7 @@ process_qualimap_folders <- function(comparison_folder) {
       }
       results_df <- bind_rows(results_df, folder_results)
     } else {
-      warning(paste("File genome_results.txt not found in:", basename(folder)))
+      stop(paste("File genome_results.txt not found in:", basename(folder)))
     }
   }
   results_df
@@ -209,8 +210,7 @@ mapping_quality_comparison <- function(samples_df){
 # Insert Size
 insert_size_comparison <- function(samples_df){
   samples_df %<>% mutate(label = paste0(sample, " - \n", label_comma()(mean_insert_size)))
-  
-  p1 <- ggplot(samples_df, aes(x = mean_insert_size, y = reorder(sample, mean_insert_size) , fill = sample, group = 1)) +
+  p <- ggplot(samples_df, aes(x = mean_insert_size, y = reorder(sample, mean_insert_size) , fill = sample, group = 1)) +
     geom_bar(stat = "identity", show.legend = FALSE) +
     geom_line(color = "black", linewidth = 1) +
     geom_point(color = "black", size = 5, show.legend = FALSE)+
@@ -221,8 +221,10 @@ insert_size_comparison <- function(samples_df){
               size = 4, 
               color = "black") +
     scale_fill_brewer(palette = "Set3")
-  
-  p2 <- ggplot(samples_df, aes(y = reorder(sample, mean_insert_size))) +
+  p  
+}
+insert_size_mean_comparison <- function(samples_df){
+  p <- ggplot(samples_df, aes(y = reorder(sample, mean_insert_size))) +
     geom_errorbar(aes(xmin = max(mean_insert_size - std_insert_size, 0),
                       xmax = mean_insert_size + std_insert_size), 
                   width = 0.2, color = "black") +  
@@ -240,14 +242,13 @@ insert_size_comparison <- function(samples_df){
     scale_color_manual(values = c("Mean" = "blue", "Median" = "red")) + 
     scale_shape_manual(values = c("Mean" = 16, "Median" = 17)) +
     scale_x_continuous(labels = comma)
-  (p1 + p2)
+  p
 }
 
 # Data Coverage
 coverage_comparison <- function(samples_df){
   samples_df %<>% mutate(label = paste0(sample, " - \n", label_comma()(mean_coverageData)))
-  
-  p1 <- ggplot(samples_df, aes(x = mean_coverageData, y = reorder(sample, mean_coverageData) , fill = sample, group = 1)) +
+  p <- ggplot(samples_df, aes(x = mean_coverageData, y = reorder(sample, mean_coverageData) , fill = sample, group = 1)) +
     geom_bar(stat = "identity", show.legend = FALSE) +
     geom_line(color = "black", linewidth = 1) +
     geom_point(color = "black", size = 5, show.legend = FALSE)+
@@ -258,8 +259,10 @@ coverage_comparison <- function(samples_df){
               size = 4, 
               color = "black") +
     scale_fill_brewer(palette = "Set3")
-  
-  p2 <- ggplot(samples_df, aes(x=mean_coverageData, y=reorder(sample, mean_coverageData))) +
+ p
+}
+coverage_mean_comparison <- function(samples_df){
+  p <- ggplot(samples_df, aes(x=mean_coverageData, y=reorder(sample, mean_coverageData))) +
     geom_errorbar(aes(xmin = mean_coverageData - std_coverageData, 
                       xmax = mean_coverageData + std_coverageData), 
                   width = 0.2, color = "red") + 
@@ -272,7 +275,7 @@ coverage_comparison <- function(samples_df){
           plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
           axis.text.x = element_text(size = 12),
           axis.text.y = element_text(size = 12))
- (p1 + p2)
+  p
 }
 
 # ACTG Content

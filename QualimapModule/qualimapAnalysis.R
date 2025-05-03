@@ -11,13 +11,14 @@ get_genome_results <- function(qualimap_folder){
   readLines(file_path)
 }
 process_qualimap <- function(qualimap_folder) {
+  incProgress(0.1, detail = "Reading file...")
   lines <- get_genome_results(qualimap_folder)
   lines <- lines[!grepl('^>>>>>', lines)]
   start_index <- grep("bam file", lines) 
   end_index <- grep("std coverageData", lines)
   lines <- lines[start_index:end_index]
   results <- list()
-  
+  incProgress(0.5, detail = "Processing data...")
   for (line in lines) {
     if (line == "") next
     parts <- strsplit(line, "=")[[1]]

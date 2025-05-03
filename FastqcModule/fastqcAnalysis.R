@@ -13,9 +13,10 @@ get_fastqc_data <- function(zip_file) {
   readLines(unz(zip_file, fastqc_data_path))
 }
 process_fastqc <- function(fastqc_folder, read) {
+  incProgress(0.1, detail = "Reading file...")
   zip_file <- list.files(path = fastqc_folder, pattern = paste0("*", read, "_fastqc.zip"), full.names = TRUE)
   if (length(zip_file) == 0) {
-    stop("Zip file not found.")
+    stop(paste0("Zip file containing read ", read," not found in selected folder."))
   }
   
   lines <- get_fastqc_data(zip_file)
@@ -23,7 +24,7 @@ process_fastqc <- function(fastqc_folder, read) {
   end_index <- grep("Sequence length", lines)
   lines <- lines[start_index:end_index]
   results <- list()
-
+  incProgress(0.4, detail = "Processing data...")
   for (line in lines) {
     parts <- strsplit(line, "\t")[[1]]
     key <- trimws(parts[1])

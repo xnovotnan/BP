@@ -34,98 +34,97 @@ params:
 ---
 
 ## File
-- **File: ** `r params$file_name`
-- **Selected chromosome: ** `r params$selected_chromosome`
 
+-   **File:** `r params$file_name`
+-   **Selected chromosome:** `r params$selected_chromosome`
 
 ## Mutation Counts
-```{r echo=FALSE, out.width="70%"}
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, out.width="80%"}
 print(params$mutation_donut)
 ```
 
-```{r echo=FALSE, out.width="70%"}
+```{r echo=FALSE, message=FALSE, warning=FALSE, out.width="80%"}
 print(params$mutation_distribution)
 ```
 
-
 ## Single Nucleotide Polymorphism (SNP) Analysis
-- `r params$snp_value`
 
-```{r echo=FALSE, out.width="70%"}
+-   `r params$snp_value`
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, out.width="80%"}
 print(params$snp_types_donut)
 ```
 
-```{r echo=FALSE, out.width="70%"}
+```{r echo=FALSE, message=FALSE, warning=FALSE, out.width="80%"}
 print(params$snp_class_stacked)
 ```
 
-```{r echo=FALSE, out.width="70%"}
+```{r echo=FALSE, message=FALSE, warning=FALSE, out.width="80%"}
 print(params$snp_class_boxplot)
 ```
 
-```{r echo=FALSE, out.width="70%"}
+```{r echo=FALSE, message=FALSE, warning=FALSE, out.width="80%"}
 print(params$snp_class_barplot)
 ```
 
-
 ## Insertion and Deletion (INDEL) Analysis
-- `r params$indel_values`
-- `r params$indel_length_avg`
-- `r params$indel_length_med`
 
-```{r echo=FALSE, out.width="70%"}
+-   `r params$indel_values`
+-   `r params$indel_length_avg`
+-   `r params$indel_length_med`
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, out.width="80%"}
 print(params$indel_types)
 ```
 
-```{r echo=FALSE, out.width="70%"}
+```{r echo=FALSE, message=FALSE, warning=FALSE, out.width="80%"}
 print(params$indel_stacked)
 ```
 
-```{r echo=FALSE, out.width="70%"}
+```{r echo=FALSE, message=FALSE, warning=FALSE, out.width="80%"}
 print(params$indel_length)
 ```
 
-```{r echo=FALSE, out.width="70%"}
+```{r echo=FALSE, message=FALSE, warning=FALSE, out.width="80%"}
 print(params$indel_length_boxplot)
 ```
 
-
 ## Quality Analysis
-- `r params$quality_avg`
-- `r params$quality_med`
 
-```{r echo=FALSE, out.width="70%"}
+-   `r params$quality_avg`
+-   `r params$quality_med`
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, out.width="80%"}
 print(params$quality_bar)
 ```
 
-```{r echo=FALSE, out.width="70%"}
+```{r echo=FALSE, message=FALSE, warning=FALSE, out.width="80%"}
 print(params$quality_on_chroms)
 ```
 
-
 ## Allele Frequency Analysis
-- `r params$allele_freq_avg`
-- `r params$allele_freq_med`
 
-```{r echo=FALSE, out.width="70%"}
+-   `r params$allele_freq_avg`
+-   `r params$allele_freq_med`
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, out.width="80%"}
 print(params$allele_freq_hexbin)
 ```
 
-```{r echo=FALSE, out.width="70%"}
+```{r echo=FALSE, message=FALSE, warning=FALSE, out.width="80%"}
 print(params$allele_freq_on_chroms)
 ```
 
-
 ## Read Depth Analysis
-- `r params$read_depth_avg`
-- `r params$read_depth_med`
 
-```{r echo=FALSE, out.width="70%"}
+-   `r params$read_depth_avg`
+-   `r params$read_depth_med`
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, out.width="80%"}
 print(params$read_depth_density)
 ```
 
-```{r echo=FALSE, out.width="70%"}
+```{r echo=FALSE, message=FALSE, warning=FALSE, out.width="80%"}
 print(params$read_depth_on_chroms)
 ```
-
-

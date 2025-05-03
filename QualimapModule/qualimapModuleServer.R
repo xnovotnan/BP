@@ -17,7 +17,9 @@ qualimapModuleServer <- function(id) {
     qualimap_data <- reactive({
       folder_path <- qualimap_folder_path()
       req(folder_path)
-      process_qualimap(folder_path)
+      withProgress(message = "Preprocessing files...", value = 0, {
+        process_qualimap(folder_path)
+      })
     })
     
     output$selected_folder_path <- renderText({
@@ -135,40 +137,46 @@ qualimapModuleServer <- function(id) {
     output$download_qualimap_pdf <- downloadHandler(
       filename = "qualimapReport.pdf",
       content = function(file) {
-        temp_report <- file.path("QualimapModule", "qualimapReport.Rmd") 
-        file.copy("qualimapReport.Rmd", temp_report, overwrite = TRUE)
-        params <- list(
-          file_name = qualimap_folder_path(),
-          bam_file = qualimap_data()["bam file"],
-          num_of_bases = qualimap_data()["number of bases"],
-          num_of_contigs = qualimap_data()["number of contigs"],
-          num_of_reads = qualimap_data()["number of reads"],
-          num_of_mapped_reads = qualimap_data()["number of mapped reads"],
-          num_of_mapped_paired_reads = qualimap_data()["number of mapped paired reads (both in pair)"],
-          num_of_mapped_paired_reads_singletons = qualimap_data()["number of mapped paired reads (singletons)"],
-          num_of_mapped_bases = qualimap_data()["number of mapped bases"],
-          num_of_sequenced_bases = qualimap_data()["number of sequenced bases"],
-          num_of_duplicated_reads = qualimap_data()["number of duplicated reads (flagged)"],
-          mean_insert_size = qualimap_data()["mean insert size"],
-          median_insert_size = qualimap_data()["median insert size"],
-          std_insert_size = qualimap_data()["std insert size"],
-          mean_coverage = qualimap_data()["mean coverageData"],
-          std_coverage = qualimap_data()["std coverageData"],
-          gc_percentage = qualimap_data()["GC percentage"],
-          duplication_rate_histogram = find_qualimap_png(qualimap_folder_path(), "genome_uniq_read_starts_histogram.png"),
-          mapping_quality_histogram = find_qualimap_png(qualimap_folder_path(), "genome_mapping_quality_histogram.png"),
-          insert_size_across_reference = find_qualimap_png(qualimap_folder_path(), "genome_insert_size_across_reference.png"),
-          insert_size_histogram = find_qualimap_png(qualimap_folder_path(), "genome_insert_size_histogram.png"),
-          qualimap_coverage = process_qualimap_coverage(qualimap_folder_path()),
-          qualimap_coverage_pc = process_qualimap_coverage_pc(qualimap_folder_path()),  
-          actg_content_barplot = process_ACTG_content(qualimap_data()), 
-          cg_content_distribution = find_qualimap_png(qualimap_folder_path(),"genome_gc_content_per_window.png")
-        )
-        
-        rmarkdown::render(temp_report, output_file = file,
-                          params = params,
-                          envir = new.env(parent = globalenv())
-        )
+        withProgress(message = "Generating Qualimap report...", value = 0, {
+          temp_report <- file.path("QualimapModule", "qualimapReport.Rmd") 
+          file.copy("qualimapReport.Rmd", temp_report, overwrite = TRUE)
+          incProgress(0.2, detail = "Loading data...")
+          params <- list(
+            file_name = qualimap_folder_path(),
+            bam_file = qualimap_data()["bam file"],
+            num_of_bases = qualimap_data()["number of bases"],
+            num_of_contigs = qualimap_data()["number of contigs"],
+            num_of_reads = qualimap_data()["number of reads"],
+            num_of_mapped_reads = qualimap_data()["number of mapped reads"],
+            num_of_mapped_paired_reads = qualimap_data()["number of mapped paired reads (both in pair)"],
+            num_of_mapped_paired_reads_singletons = qualimap_data()["number of mapped paired reads (singletons)"],
+            num_of_mapped_bases = qualimap_data()["number of mapped bases"],
+            num_of_sequenced_bases = qualimap_data()["number of sequenced bases"],
+            num_of_duplicated_reads = qualimap_data()["number of duplicated reads (flagged)"],
+            mean_insert_size = qualimap_data()["mean insert size"],
+            median_insert_size = qualimap_data()["median insert size"],
+            std_insert_size = qualimap_data()["std insert size"],
+            mean_coverage = qualimap_data()["mean coverageData"],
+            std_coverage = qualimap_data()["std coverageData"],
+            gc_percentage = qualimap_data()["GC percentage"],
+            duplication_rate_histogram = find_qualimap_png(qualimap_folder_path(), "genome_uniq_read_starts_histogram.png"),
+            mapping_quality_histogram = find_qualimap_png(qualimap_folder_path(), "genome_mapping_quality_histogram.png"),
+            insert_size_across_reference = find_qualimap_png(qualimap_folder_path(), "genome_insert_size_across_reference.png"),
+            insert_size_histogram = find_qualimap_png(qualimap_folder_path(), "genome_insert_size_histogram.png"),
+            qualimap_coverage = process_qualimap_coverage(qualimap_folder_path()),
+            qualimap_coverage_pc = process_qualimap_coverage_pc(qualimap_folder_path()),  
+            actg_content_barplot = process_ACTG_content(qualimap_data()), 
+            cg_content_distribution = find_qualimap_png(qualimap_folder_path(), "genome_gc_content_per_window.png")
+          )
+          incProgress(0.5, detail = "Preparing report...")
+          rmarkdown::render(
+            temp_report,
+            output_file = file,
+            params = params,
+            envir = new.env(parent = globalenv())
+          )
+          incProgress(1, detail = "Report completed!")
+        })
       }
     )
     

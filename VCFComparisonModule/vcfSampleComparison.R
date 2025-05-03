@@ -5,9 +5,11 @@ library(scales)
 library(utils)
 library(vroom)
 options(scipen = 999)
+library(eulerr)
 
 # Preprocess vcf data
 process_vcf <- function(vcf_file){
+  incProgress(0.1, detail = "Processing data...")
   name <- basename(vcf_file)
   family <- stringr::str_extract(name, "(?<=\\.)\\d+")
   vcf_tibble <- vroom::vroom(
@@ -52,9 +54,9 @@ process_vcf <- function(vcf_file){
 prepare_vcf_files <- function(folder_path){
   files <- list.files(folder_path, pattern = "\\.vcf.gz$", full.names = TRUE)
   vcf_data <- purrr::map_dfr(files, process_vcf)
+  incProgress(0.9, detail = "Completing preprocessing...")
   vcf_data
 }
-# b <- prepare_vcf_files("/Users/macbook/Documents/BP/data/testik.vcf")
 
 # Mutation Counts
 num_of_mutation <- function(vcf_data){
@@ -298,6 +300,72 @@ read_depth <- function(vcf_data){
   p
 }
 
+
+# VENN DIAGRAMS
+venn_diagram <- function(first_file, second_file, data){
+  data1 <- data %>% filter(name == first_file) %>%
+    pull(data) %>%
+    .[[1]] %>%
+    mutate(ID = paste0(CHROM, "_", POS, "_", REF, "_", ALT))%>%
+    select(ID)
+  
+  data2 <- data %>% filter(name == second_file) %>%
+    pull(data) %>%
+    .[[1]]%>%
+    mutate(ID = paste0(CHROM, "_", POS, "_", REF, "_", ALT))%>%
+    select(ID)
+  
+  i <- 1
+  j <- 1
+  n1 <- dim(data1)[1]
+  n2 <- dim(data2)[1]
+  
+  n_common <- 0
+  n_only1 <- 0
+  n_only2 <- 0
+  
+  while (i <= n1 && j <= n2) {
+    if (data1[i,] == data2[j,]) {
+      n_common <- n_common + 1
+      i <- i + 1
+      j <- j + 1
+    } else if (data1[i,] < data2[j,]) {
+      n_only1 <- n_only1 + 1
+      i <- i + 1
+    } else {
+      n_only2 <- n_only2 + 1
+      j <- j + 1
+    }
+  }
+  
+  n_only1 <- n_only1 + (n1 - i + 1)
+  n_only2 <- n_only2 + (n2 - j + 1)
+  
+  fit <- euler(c(
+    "VCF1" = n_only1,
+    "VCF2" = n_only2,
+    "VCF1&VCF2" = n_common
+  ))
+  
+  venn_plot <- plot(fit,
+                    fills = c("skyblue", "orange", "green3"),
+                    labels = TRUE,
+                    quantities = FALSE
+  )
+  
+  legend_grob <- grobTree(
+    rectGrob(x = 0.1, y = 0.6, width = 0.05, height = 0.05, gp = gpar(fill = "skyblue", col = NA)),
+    textGrob(paste(first_file, " only: ", format(n_only1, big.mark = ",")), x = 0.15, y = 0.6, just = "left", gp = gpar(fontsize = 12)),
+    
+    rectGrob(x = 0.1, y = 0.5, width = 0.05, height = 0.05, gp = gpar(fill = "orange", col = NA)),
+    textGrob(paste(second_file, " only: ", format(n_only2, big.mark = ",")), x = 0.15, y = 0.5, just = "left", gp = gpar(fontsize = 12)),
+    
+    rectGrob(x = 0.1, y = 0.4, width = 0.05, height = 0.05, gp = gpar(fill = "green3", col = NA)),
+    textGrob(paste("Shared: ", format(n_common, big.mark = ",")), x = 0.15, y = 0.4, just = "left", gp = gpar(fontsize = 12))
+  )
+  
+  grid.arrange(legend_grob, venn_plot, ncol = 2, widths = c(1, 3))
+}
 
 
 
