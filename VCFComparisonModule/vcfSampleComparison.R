@@ -6,6 +6,8 @@ library(utils)
 library(vroom)
 options(scipen = 999)
 library(eulerr)
+library(grid)
+library(gridExtra)
 
 # Preprocess vcf data
 process_vcf <- function(vcf_file){
@@ -303,17 +305,21 @@ read_depth <- function(vcf_data){
 
 # VENN DIAGRAMS
 venn_diagram <- function(first_file, second_file, data){
+  
   data1 <- data %>% filter(name == first_file) %>%
     pull(data) %>%
     .[[1]] %>%
     mutate(ID = paste0(CHROM, "_", POS, "_", REF, "_", ALT))%>%
     select(ID)
   
+  incProgress(0.1, detail = "Processing first file...")
+  
   data2 <- data %>% filter(name == second_file) %>%
     pull(data) %>%
     .[[1]]%>%
     mutate(ID = paste0(CHROM, "_", POS, "_", REF, "_", ALT))%>%
     select(ID)
+  incProgress(0.1, detail = "Processing second file...")
   
   i <- 1
   j <- 1
@@ -325,6 +331,7 @@ venn_diagram <- function(first_file, second_file, data){
   n_only2 <- 0
   
   while (i <= n1 && j <= n2) {
+    incProgress(0.0000000001, detail = "Computing graph...")
     if (data1[i,] == data2[j,]) {
       n_common <- n_common + 1
       i <- i + 1
@@ -337,10 +344,10 @@ venn_diagram <- function(first_file, second_file, data){
       j <- j + 1
     }
   }
-  
   n_only1 <- n_only1 + (n1 - i + 1)
   n_only2 <- n_only2 + (n2 - j + 1)
   
+  incProgress(0.2, detail = "Generating venn diagram...")
   fit <- euler(c(
     "VCF1" = n_only1,
     "VCF2" = n_only2,
@@ -355,13 +362,13 @@ venn_diagram <- function(first_file, second_file, data){
   
   legend_grob <- grobTree(
     rectGrob(x = 0.1, y = 0.6, width = 0.05, height = 0.05, gp = gpar(fill = "skyblue", col = NA)),
-    textGrob(paste(first_file, " only: ", format(n_only1, big.mark = ",")), x = 0.15, y = 0.6, just = "left", gp = gpar(fontsize = 12)),
+    textGrob(paste(first_file, " only: ", format(n_only1, big.mark = ",")), x = 0.15, y = 0.6, just = "left", gp = gpar(fontsize = 14)),
     
     rectGrob(x = 0.1, y = 0.5, width = 0.05, height = 0.05, gp = gpar(fill = "orange", col = NA)),
-    textGrob(paste(second_file, " only: ", format(n_only2, big.mark = ",")), x = 0.15, y = 0.5, just = "left", gp = gpar(fontsize = 12)),
+    textGrob(paste(second_file, " only: ", format(n_only2, big.mark = ",")), x = 0.15, y = 0.5, just = "left", gp = gpar(fontsize = 14)),
     
     rectGrob(x = 0.1, y = 0.4, width = 0.05, height = 0.05, gp = gpar(fill = "green3", col = NA)),
-    textGrob(paste("Shared: ", format(n_common, big.mark = ",")), x = 0.15, y = 0.4, just = "left", gp = gpar(fontsize = 12))
+    textGrob(paste("Shared: ", format(n_common, big.mark = ",")), x = 0.15, y = 0.4, just = "left", gp = gpar(fontsize = 14))
   )
   
   grid.arrange(legend_grob, venn_plot, ncol = 2, widths = c(1, 3))

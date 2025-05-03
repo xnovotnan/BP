@@ -52,80 +52,95 @@ vcfComparisonServer <- function(id) {
     })
     
     # Mutation Counts
+    num_of_mutation_plot <- reactive({
+      num_of_mutation(filtered_data())
+    })
     output$num_of_mutation <- renderPlot({
-      data <- processed_data()
-      if (input$family_select != "All") {data %<>% filter(family == input$family_select)}
-      num_of_mutation(data)
+      num_of_mutation_plot()
+    })
+    mutation_heatmap_plot <- reactive({
+      mutation_heatmap(filtered_data())
     })
     output$mutation_heatmap <- renderPlot({
-      data <- processed_data()
-      if (input$family_select != "All") {data %<>% filter(family == input$family_select)}
-      mutation_heatmap(data)
+      mutation_heatmap_plot()
+    })
+    mutation_types_distribution_plot <- reactive({
+      mutation_types_distribution(filtered_data())
     })
     output$mutation_types_distribution <- renderPlot({
-      data <- processed_data()
-      if (input$family_select != "All") {data %<>% filter(family == input$family_select)}
-      mutation_types_distribution(data)
+      mutation_types_distribution_plot()
+    })
+    mutation_subtypes_distribution_plot <- reactive({
+      mutation_subtypes_distribution(filtered_data())
     })
     output$mutation_subtypes_distribution <- renderPlot({
-      data <- processed_data()
-      if (input$family_select != "All") {data %<>% filter(family == input$family_select)}
-      mutation_subtypes_distribution(data)
+      mutation_subtypes_distribution_plot()
     })
     
     # SNP Analysis
+    snp_class_comparison_plot <- reactive({
+      snp_class_comparison(filtered_data())
+    })
     output$snp_class_comparison <- renderPlot({
-      data <- processed_data()
-      if (input$family_select != "All") {data %<>% filter(family == input$family_select)}
-      snp_class_comparison(data)
+      snp_class_comparison_plot()
+    })
+    transversion_transitions_plot <- reactive({
+      transversion_transitions(filtered_data())
     })
     output$transversion_transitions <- renderPlot({
-      data <- processed_data()
-      if (input$family_select != "All") {data %<>% filter(family == input$family_select)}
-      transversion_transitions(data)
+      transversion_transitions_plot()
     })
     
     # INDEL Analysis
+    insertion_deletions_plot <- reactive({
+      insertion_deletions(filtered_data())
+    })
     output$insertion_deletions <- renderPlot({
-      data <- processed_data()
-      if (input$family_select != "All") {data %<>% filter(family == input$family_select)}
-      insertion_deletions(data)
+      insertion_deletions_plot()
+    })
+    indel_len_boxplot_plot <- reactive({
+      indel_len_boxplot(filtered_data())
     })
     output$indel_len_boxplot <- renderPlot({
-      data <- processed_data()
-      if (input$family_select != "All") {data %<>% filter(family == input$family_select)}
-      indel_len_boxplot(data)
+      indel_len_boxplot_plot()
     })
     
     # Quality Analysis
+    quality_boxplot_plot <- reactive({
+      quality_boxplot(filtered_data())
+    })
     output$quality_boxplot <- renderPlot({
-      data <- processed_data()
-      if (input$family_select != "All") {data %<>% filter(family == input$family_select)}
-      quality_boxplot(data)
+      quality_boxplot_plot()
     })
     
     # Allele Frequency Analysis
+    frequency_ridges_plot <- reactive({
+      frequency_ridges(filtered_data())
+    })
     output$frequency_ridges <- renderPlot({
-      data <- processed_data()
-      if (input$family_select != "All") {data %<>% filter(family == input$family_select)}
-      frequency_ridges(data)
+      frequency_ridges_plot()
     })
     
     # Read Depth Analysis
+    read_depth_plot <- reactive({
+      read_depth(filtered_data())
+    })
     output$read_depth <- renderPlot({
-      data <- processed_data()
-      if (input$family_select != "All") {data %<>% filter(family == input$family_select)}
-      read_depth(data)
+      read_depth_plot()
     })
     
     # Venn diagram
-    output$venn_diagram <- renderPlot({
-      data <- processed_data()
+    venn_diagram_plot <- reactive({
       file1 <- input$first_file_select
       file2 <- input$second_file_select
       req(file1 != "-")
       req(file2 != "-")
-      venn_diagram(file1, file2, data)
+      venn_diagram(file1, file2, filtered_data())
+    })
+    output$venn_diagram <- renderPlot({
+      withProgress(message = "Generating Venn diagram...", value = 0, {
+        venn_diagram_plot()
+      })
     })
     
     
@@ -140,17 +155,20 @@ vcfComparisonServer <- function(id) {
           params <- list(
             folder_name = vcf_comparison_folder_path(),
             selected_family = input$family_select,
-            num_of_mutation = num_of_mutation(processed_data()),
-            mutation_heatmap = mutation_heatmap(processed_data()),
-            mutation_types_distribution = mutation_types_distribution(processed_data()),
-            mutation_subtypes_distribution = mutation_subtypes_distribution(processed_data()),
-            snp_class_comparison = snp_class_comparison(processed_data()),
-            transversion_transitions = transversion_transitions(processed_data()),
-            insertion_deletions = insertion_deletions(processed_data()),
-            indel_len_boxplot = indel_len_boxplot(processed_data()),
-            quality_boxplot = quality_boxplot(processed_data()),
-            frequency_ridges = frequency_ridges(processed_data()),
-            read_depth = read_depth(processed_data())
+            num_of_mutation = num_of_mutation_plot(),
+            mutation_heatmap = mutation_heatmap_plot(),
+            mutation_types_distribution = mutation_types_distribution_plot(),
+            mutation_subtypes_distribution = mutation_subtypes_distribution_plot(),
+            snp_class_comparison = snp_class_comparison_plot(),
+            transversion_transitions = transversion_transitions_plot(),
+            insertion_deletions = insertion_deletions_plot(),
+            indel_len_boxplot = indel_len_boxplot_plot(),
+            quality_boxplot = quality_boxplot_plot(),
+            frequency_ridges = frequency_ridges_plot(),
+            read_depth = read_depth_plot(),
+            first_file = input$first_file_select,
+            second_file = input$second_file_select,
+            venn_diagram = if (!is.null(venn_diagram_plot())) venn_diagram_plot() else NA
           )
           incProgress(0.5, detail = "Rendering report...")
           rmarkdown::render(
@@ -212,8 +230,8 @@ vcfComparisonServer <- function(id) {
           )
         ),
         fluidRow(
-            column(6, plotOutput(ns("snp_class_comparison"))),
-            column(6, plotOutput(ns("transversion_transitions")))
+          column(6, plotOutput(ns("snp_class_comparison"))),
+          column(6, plotOutput(ns("transversion_transitions")))
         ),
         tags$hr(),
         tags$h4(
@@ -225,8 +243,8 @@ vcfComparisonServer <- function(id) {
           )
         ),
         fluidRow(
-            column(6, plotOutput(ns("insertion_deletions"))),
-            column(6, plotOutput(ns("indel_len_boxplot")))
+          column(6, plotOutput(ns("insertion_deletions"))),
+          column(6, plotOutput(ns("indel_len_boxplot")))
         ),
         tags$hr(),
         tags$h4(
@@ -268,7 +286,7 @@ vcfComparisonServer <- function(id) {
           "Venn Diagrams",
           tags$span(
             icon("info-circle"),
-            title = "",
+            title = "Venn diagram shows the number of shared and unique mutations between two VCF files based on matching chromosome, position, reference, and alternate alleles.",
             style = "cursor: help; color: black; font-size: 12px; vertical-align: middle;"
           )
         ),

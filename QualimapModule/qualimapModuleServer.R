@@ -21,7 +21,6 @@ qualimapModuleServer <- function(id) {
         process_qualimap(folder_path)
       })
     })
-    
     output$selected_folder_path <- renderText({
       folder_path <- qualimap_folder_path()
       req(folder_path)
@@ -38,7 +37,6 @@ qualimapModuleServer <- function(id) {
     output$num_of_contigs <- renderText({
       paste("Number of Contigs:", qualimap_data()["number of contigs"])
     })
-    
     
     # Read Statistics
     output$num_of_reads <- renderText({
@@ -77,7 +75,6 @@ qualimapModuleServer <- function(id) {
            contentType = "image/png",
            width = "100%")
     }, deleteFile = FALSE)
-    
     
     # Insert Size
     output$mean_insert_size <- renderText({
