@@ -8,7 +8,7 @@ vcfModuleServer <- function(id) {
   moduleServer(id, function(input, output, session) {
     processed_data <- reactive({
       req(input$vcf_file)
-      withProgress(message = "Preprocessing file...", value = 0, {
+      withProgress(message = "Processing file...", value = 0, {
         prepare_data(input$vcf_file$datapath)
       })
     })

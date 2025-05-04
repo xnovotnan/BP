@@ -1,7 +1,6 @@
 ---
 title: "VCF Comparison Analysis Report"
 output: pdf_document
-  
 params:
   folder_name: NA
   selected_family: NA
@@ -16,9 +15,11 @@ params:
   quality_boxplot: NA
   frequency_ridges: NA
   read_depth: NA
-  first_file: NA
-  second_file: NA
+  file1: NA
+  file2: NA
+  file3: NA
   venn_diagram: NA
+  venn_ready: NA
 ---
 
 ## File
@@ -88,14 +89,15 @@ print(params$read_depth)
 
 
 ## Venn Diagram 
-- **First file: ** `r params$first_file`
-- **Second file: ** `r params$second_file`
+- **File 1: ** `r params$file1`
+- **File 2: ** `r params$file2`
+- **File 3: ** `r params$file3`
 
 ```{r echo=FALSE, out.width="80%"}
-if (!is.na(params$venn_diagram)) {
+if(params$venn_ready){
   grid.draw(params$venn_diagram)
-} else {
-  paste0("Venn diagram not generated.")
+}else{
+  paste0("Files not selected.")
 }
 ```
 

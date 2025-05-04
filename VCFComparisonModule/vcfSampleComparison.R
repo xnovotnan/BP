@@ -259,7 +259,6 @@ quality_boxplot <- function(vcf_data){
   p
 }
 
-
 # Allele Frequency Analysis
 frequency_ridges <- function(vcf_data){
   vcf_data %<>%
@@ -302,77 +301,112 @@ read_depth <- function(vcf_data){
   p
 }
 
-
-# VENN DIAGRAMS
-venn_diagram <- function(first_file, second_file, data){
-  
-  data1 <- data %>% filter(name == first_file) %>%
+# VENN DIAGRAM 2 FILES
+venn_diagram <- function(file1, file2, data){
+  incProgress(0.1, detail = "Processing first file...")
+  data1 <- data %>% filter(name == file1) %>%
     pull(data) %>%
     .[[1]] %>%
     mutate(ID = paste0(CHROM, "_", POS, "_", REF, "_", ALT))%>%
     select(ID)
   
-  incProgress(0.1, detail = "Processing first file...")
-  
-  data2 <- data %>% filter(name == second_file) %>%
+  incProgress(0.1, detail = "Processing second file...")
+  data2 <- data %>% filter(name == file2) %>%
     pull(data) %>%
     .[[1]]%>%
     mutate(ID = paste0(CHROM, "_", POS, "_", REF, "_", ALT))%>%
     select(ID)
-  incProgress(0.1, detail = "Processing second file...")
   
-  i <- 1
-  j <- 1
-  n1 <- dim(data1)[1]
-  n2 <- dim(data2)[1]
-  
-  n_common <- 0
-  n_only1 <- 0
-  n_only2 <- 0
-  
-  while (i <= n1 && j <= n2) {
-    incProgress(0.0000000001, detail = "Computing graph...")
-    if (data1[i,] == data2[j,]) {
-      n_common <- n_common + 1
-      i <- i + 1
-      j <- j + 1
-    } else if (data1[i,] < data2[j,]) {
-      n_only1 <- n_only1 + 1
-      i <- i + 1
-    } else {
-      n_only2 <- n_only2 + 1
-      j <- j + 1
-    }
-  }
-  n_only1 <- n_only1 + (n1 - i + 1)
-  n_only2 <- n_only2 + (n2 - j + 1)
-  
+  incProgress(0.15, detail = "Computing overlaps...")
+  n_only1 <-  setdiff(data1, data2) %>% nrow()
+  n_only2 <- setdiff(data2, data1) %>% nrow()
+  n_common <- intersect(data1, data2) %>% nrow()
+
   incProgress(0.2, detail = "Generating venn diagram...")
   fit <- euler(c(
     "VCF1" = n_only1,
     "VCF2" = n_only2,
     "VCF1&VCF2" = n_common
   ))
+  venn_plot <- plot(fit,
+                    fills = c("skyblue", "orange"),
+                    labels = TRUE,
+                    quantities = FALSE
+  )
+  text_legend <- grobTree(
+    textGrob(paste("- VCF1 only: ", format(n_only1, big.mark = ",")), x = 0.3, y = 0.6, just = "left", gp = gpar(fontsize = 14)),
+    textGrob(paste("- VCF2 only: ", format(n_only2, big.mark = ",")), x = 0.3, y = 0.5, just = "left", gp = gpar(fontsize = 14)),
+    textGrob(paste("- Shared: ", format(n_common, big.mark = ",")), x = 0.3, y = 0.4, just = "left", gp = gpar(fontsize = 14))
+  )
+  grid.arrange(
+    venn_plot,
+    text_legend,
+    ncol = 2,
+    widths = c(4, 2)
+  )
+}
+
+# VENN DIAGRAM 3 FILES
+venn_diagram_3files <- function(file1, file2, file3, data) {
+  incProgress(0.1, detail = "Processing first file...")
+  data1 <- data %>% filter(name == file1) %>%
+    pull(data) %>%
+    .[[1]] %>%
+    mutate(ID = paste0(CHROM, "_", POS, "_", REF, "_", ALT))%>%
+    select(ID)
   
+  incProgress(0.1, detail = "Processing second file...")
+  data2 <- data %>% filter(name == file2) %>%
+    pull(data) %>%
+    .[[1]]%>%
+    mutate(ID = paste0(CHROM, "_", POS, "_", REF, "_", ALT))%>%
+    select(ID)
+
+  incProgress(0.1, detail = "Processing third file...")
+  data3 <- data %>% filter(name == file3) %>%
+    pull(data) %>%
+    .[[1]]%>%
+    mutate(ID = paste0(CHROM, "_", POS, "_", REF, "_", ALT))%>%
+    select(ID)
+  
+  n_only1 <-  setdiff(data1, union(data2, data3)) %>% nrow()
+  n_only2 <- setdiff(data2, union(data1, data3)) %>% nrow()
+  n_only3 <- setdiff(data3, union(data1, data2)) %>% nrow()
+  n_common12 <- intersect(data1, data2) %>% setdiff(data3) %>% nrow()
+  n_common13 <- intersect(data1, data3) %>% setdiff(data2) %>% nrow()
+  n_common23 <- intersect(data2, data3) %>% setdiff(data1) %>% nrow()
+  n_common123 <- Reduce(intersect, list(data1, data2, data3)) %>% nrow()
+  
+  incProgress(0.15, detail = "Computing overlaps...")
+  fit <- euler(c(
+    "VCF1" = n_only1,
+    "VCF2" = n_only2,
+    "VCF3" = n_only3,
+    "VCF1&VCF2" = n_common12,
+    "VCF1&VCF3" = n_common13,
+    "VCF2&VCF3" = n_common23,
+    "VCF1&VCF2&VCF3" = n_common123
+  ))
+  incProgress(0.2, detail = "Generating venn diagram...")
   venn_plot <- plot(fit,
                     fills = c("skyblue", "orange", "green3"),
                     labels = TRUE,
                     quantities = FALSE
   )
   
-  legend_grob <- grobTree(
-    rectGrob(x = 0.1, y = 0.6, width = 0.05, height = 0.05, gp = gpar(fill = "skyblue", col = NA)),
-    textGrob(paste(first_file, " only: ", format(n_only1, big.mark = ",")), x = 0.15, y = 0.6, just = "left", gp = gpar(fontsize = 14)),
-    
-    rectGrob(x = 0.1, y = 0.5, width = 0.05, height = 0.05, gp = gpar(fill = "orange", col = NA)),
-    textGrob(paste(second_file, " only: ", format(n_only2, big.mark = ",")), x = 0.15, y = 0.5, just = "left", gp = gpar(fontsize = 14)),
-    
-    rectGrob(x = 0.1, y = 0.4, width = 0.05, height = 0.05, gp = gpar(fill = "green3", col = NA)),
-    textGrob(paste("Shared: ", format(n_common, big.mark = ",")), x = 0.15, y = 0.4, just = "left", gp = gpar(fontsize = 14))
+  text_legend <- grobTree(
+    textGrob(paste("- VCF1 only: ", format(n_only1, big.mark = ",")), x = 0.3, y = 0.8, just = "left", gp = gpar(fontsize = 14)),
+    textGrob(paste("- VCF2 only: ", format(n_only2, big.mark = ",")), x = 0.3, y = 0.7, just = "left", gp = gpar(fontsize = 14)),
+    textGrob(paste("- VCF3 only: ", format(n_only3, big.mark = ",")), x = 0.3, y = 0.6, just = "left", gp = gpar(fontsize = 14)),
+    textGrob(paste("- VCF1 and VCF2 only: ", format(n_common12, big.mark = ",")), x = 0.3, y = 0.5, just = "left", gp = gpar(fontsize = 14)),
+    textGrob(paste("- VCF1 and VCF3 only: ", format(n_common13, big.mark = ",")), x = 0.3, y = 0.4, just = "left", gp = gpar(fontsize = 14)),
+    textGrob(paste("- VCF2 and VCF3 only: ", format(n_common23, big.mark = ",")), x = 0.3, y = 0.3, just = "left", gp = gpar(fontsize = 14)),
+    textGrob(paste("- Shared: ", format(n_common123, big.mark = ",")), x = 0.3, y = 0.2, just = "left", gp = gpar(fontsize = 14))
   )
-  
-  grid.arrange(legend_grob, venn_plot, ncol = 2, widths = c(1, 3))
+  grid.arrange(
+    venn_plot,
+    text_legend,
+    ncol = 2,
+    widths = c(4, 2)
+  )
 }
-
-
-

@@ -42,13 +42,19 @@ vcfComparisonServer <- function(id) {
       data <- processed_data()
       req(data)
       files <- c("-" ,unique(data$name))
-      updateSelectInput(session, "first_file_select", choices = as.character(files))
+      updateSelectInput(session, "file1_select", choices = as.character(files))
     })
     observe({
       data <- processed_data()
       req(data)
       files <- c("-" ,unique(data$name))
-      updateSelectInput(session, "second_file_select", choices = as.character(files))
+      updateSelectInput(session, "file2_select", choices = as.character(files))
+    })
+    observe({
+      data <- processed_data()
+      req(data)
+      files <- c("-" ,unique(data$name))
+      updateSelectInput(session, "file3_select", choices = as.character(files))
     })
     
     # Mutation Counts
@@ -130,19 +136,22 @@ vcfComparisonServer <- function(id) {
     })
     
     # Venn diagram
-    venn_diagram_plot <- reactive({
-      file1 <- input$first_file_select
-      file2 <- input$second_file_select
-      req(file1 != "-")
-      req(file2 != "-")
-      venn_diagram(file1, file2, filtered_data())
+    venn_diagram_plot <- eventReactive(input$generate_venn, {
+      file1 <- input$file1_select
+      file2 <- input$file2_select
+      file3 <- input$file3_select
+      req(file1 != "-", file2 != "-")
+      if(file3 == "-"){
+        venn_diagram(file1, file2, filtered_data())
+      }else{
+        venn_diagram_3files(file1, file2, file3, filtered_data())
+      }
     })
     output$venn_diagram <- renderPlot({
       withProgress(message = "Generating Venn diagram...", value = 0, {
         venn_diagram_plot()
       })
     })
-    
     
     # PDF REPORT
     output$download_vcf_comparison_pdf <- downloadHandler(
@@ -152,6 +161,7 @@ vcfComparisonServer <- function(id) {
           temp_report <- file.path("VCFComparisonModule", "vcfComparisonReport.Rmd")
           file.copy("vcfComparisonReport.Rmd", temp_report, overwrite = TRUE)
           incProgress(0.2, detail = "Loading comparison data...")
+          venn_ready <- input$file1_select != "-" && input$file2_select != "-"
           params <- list(
             folder_name = vcf_comparison_folder_path(),
             selected_family = input$family_select,
@@ -166,9 +176,11 @@ vcfComparisonServer <- function(id) {
             quality_boxplot = quality_boxplot_plot(),
             frequency_ridges = frequency_ridges_plot(),
             read_depth = read_depth_plot(),
-            first_file = input$first_file_select,
-            second_file = input$second_file_select,
-            venn_diagram = if (!is.null(venn_diagram_plot())) venn_diagram_plot() else NA
+            file1 = input$file1_select,
+            file2 = input$file2_select,
+            file3 = input$file3_select,
+            venn_diagram = if (venn_ready) venn_diagram_plot() else NA,
+            venn_ready = venn_ready
           )
           incProgress(0.5, detail = "Rendering report...")
           rmarkdown::render(
@@ -292,16 +304,19 @@ vcfComparisonServer <- function(id) {
         ),
         tags$h5("Choose Files"),
         fluidRow(
-          column(6, selectInput(inputId = ns("first_file_select"), 
-                                label = "Select First File:", 
+          column(3, selectInput(inputId = ns("file1_select"), 
+                                label = "Select File 1 - VCF1:", 
                                 choices = c(""), 
-                                selected = ""))
-        ),
-        fluidRow(
-          column(6, selectInput(inputId = ns("second_file_select"), 
-                                label = "Select Second File:", 
+                                selected = "")),
+          column(3, selectInput(inputId = ns("file2_select"), 
+                                label = "Select File 2 - VCF2:", 
                                 choices = c(""), 
-                                selected = ""))
+                                selected = "")),
+          column(3, selectInput(inputId = ns("file3_select"), 
+                                label = "Select File 3 - VCF3 (Optional):", 
+                                choices = c(""), 
+                                selected = "")),
+          column(3, actionButton(ns("generate_venn"), "Generate Venn Diagram"))
         ),
         fluidRow(column(12, plotOutput(ns("venn_diagram")))),
         downloadButton(ns("download_vcf_comparison_pdf"), "Download PDF Report"),
