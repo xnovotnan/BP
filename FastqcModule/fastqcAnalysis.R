@@ -3,7 +3,8 @@ library(magrittr)
 library(png)
 options(scipen = 999)
 
-# Processing
+# The get_fastqc_data function reads and returns the content of the fastqc_data.txt file 
+# from the selected FASTQC folder, stopping with an error if the file is missing.
 get_fastqc_data <- function(zip_file) {
   zip_contents <- unzip(zip_file, list = TRUE)
   fastqc_data_path <- zip_contents$Name[grepl("fastqc_data.txt", zip_contents$Name)]
@@ -12,6 +13,9 @@ get_fastqc_data <- function(zip_file) {
   }
   readLines(unz(zip_file, fastqc_data_path))
 }
+
+# The process_fastqc function extract relevant data from the FASTQC report 
+# and creates a dictionary with these values. 
 process_fastqc <- function(fastqc_folder, read) {
   incProgress(0.1, detail = "Reading file...")
   zip_file <- list.files(path = fastqc_folder, pattern = paste0("*", read, "_fastqc.zip"), full.names = TRUE)
@@ -34,7 +38,8 @@ process_fastqc <- function(fastqc_folder, read) {
   results
 }
 
-# Graphs from fastqc zip file
+# The find_fastqc_png function locates the .png file with name from the parameters   
+# in the selected FASTQC read subfolder, stopping if the folder or image is missing.
 find_fastqc_png <- function(fastqc_folder, read, png_name){
   zip_file <- list.files(path = fastqc_folder, pattern = paste0("*", read, "_fastqc.zip"), full.names = TRUE)
   if (length(zip_file) == 0) {
@@ -49,8 +54,7 @@ find_fastqc_png <- function(fastqc_folder, read, png_name){
       break
     }
   }
-  
-  # file not unzipped yet
+  # if file is not unzipped yet
   if (!unzipped){
     unzip(zip_file, exdir = "Temp")
   }

@@ -4,7 +4,12 @@ library(shinyFiles)
 library(tinytex)
 source(file.path("VCFComparisonModule", "vcfSampleComparison.R"))
 
-# Serverová časť modulu pre VCF porovnanie
+# The vcfComparisonServer function defines the server logic for the VCF comparison module.
+# It processes the uploaded folder with VCF files, generate analysis components, and updates the UI with 
+# the results. It also generates PDF report from the analysis components. 
+# The server function handles file reading, data processing, and renders the dynamic
+# components based on the uploaded file.
+
 vcfComparisonServer <- function(id) {
   moduleServer(id, function(input, output, session) {
     volumes <- c(TUTUUTU = "~/Documents/BP/data", Home = path.expand("~"))

@@ -3,7 +3,8 @@ library(magrittr)
 library(scales)
 options(scipen = 999)
 
-# Process QUALIMAP files
+# The process_qualimap_folders function locates all QUALIMAP folders within the 
+# selected folder and processes it, stopping with an error if the file is missing.
 process_qualimap_folders <- function(comparison_folder) {
   results_df <- tibble(
     `sample` = character(),
@@ -68,7 +69,9 @@ process_qualimap_folders <- function(comparison_folder) {
 
 # Reference
 bases_contigs_comparison <- function(samples_df, attribute, plot_title) {
-  samples_df %<>% mutate(label = paste0(sample, " - \n", label_comma()(get(attribute))))
+  # generates labels
+  samples_df %<>% 
+    mutate(label = paste0(sample, " - \n", label_comma()(get(attribute))))
   
   p <- ggplot(samples_df, aes(x = get(attribute), y = reorder(sample, get(attribute)), fill = sample)) +
     geom_bar(stat = "identity", show.legend = FALSE) +
@@ -84,9 +87,9 @@ bases_contigs_comparison <- function(samples_df, attribute, plot_title) {
 
 # Read Statistics
 reads_comparison <- function(samples_df){
-  samples_df %<>% select("sample",
-                         "number_of_reads",
-                         "number_of_mapped_reads") %>%
+  # calculates the counts of total and mapped reads
+  samples_df %<>% 
+    select("sample","number_of_reads","number_of_mapped_reads") %>%
     pivot_longer(cols = c("number_of_reads","number_of_mapped_reads"), 
                  names_to = "reads", 
                  values_to = "count")
@@ -148,9 +151,9 @@ mapped_paired_reads_singletons <- function(samples_df){
   p
 }
 mapped_bases_comparison <- function(samples_df){
-  samples_df %<>% select("sample",
-                         "number_of_sequenced_bases",
-                         "number_of_mapped_bases") %>%
+  # calculates the counts of total and mapped bases
+  samples_df %<>% 
+    select("sample", "number_of_sequenced_bases",  "number_of_mapped_bases") %>%
     pivot_longer(cols = c("number_of_sequenced_bases",
                           "number_of_mapped_bases"), 
                  names_to = "reads", values_to = "count")
@@ -281,7 +284,7 @@ stacked_actg <- function(samples_df){
     "G" = "number_of_G's",
     "N" = "number_of_N's"
   )
-  
+  # calculates the counts of A,C,T,G and N bases
   samples_df %<>%
     pivot_longer(cols = -sample, names_to = "base", values_to = "count") %>%
     group_by(sample) %>%

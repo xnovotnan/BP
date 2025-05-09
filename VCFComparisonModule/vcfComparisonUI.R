@@ -2,7 +2,8 @@ library(shiny)
 library(shinyWidgets)
 library(shinyFiles)
 
-# UI komponent pre VCF porovnanie
+# The vcfComparisonUI function defines the user interface for the VCF 
+# comparison module, allowing users to select a folder with multiple VCF files. 
 vcfComparisonUI <- function(id) {
   ns <- NS(id)
   tagList(

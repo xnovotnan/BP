@@ -4,7 +4,12 @@ library(shinyFiles)
 library(tinytex)
 source(file.path("FastqcModule", "fastqcAnalysis.R"))
 
-# Serverová časť modulu pre FastQC analýzu
+# The fastqcModuleServer function defines the server logic for the FASTQC analysis module.
+# It processes the selected FASTQC folder, generate analysis components, updates the UI with 
+# the results. It also generates PDF report from the analysis components. 
+# The server function handles file reading, data processing, and renders the dynamic
+# components based on the uploaded file.
+
 fastqcModuleServer <- function(id) {
   moduleServer(id, function(input, output, session) {
     volumes <- c(TUTUTUUTUTUUT = "~/Documents/BP/data/sat.fastqc", Home = path.expand("~"), Desktop = "~/Desktop", Documents = "~/Documents")

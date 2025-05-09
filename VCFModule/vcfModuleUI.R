@@ -3,6 +3,8 @@ library(shinyWidgets)
 library(shinyFiles)
 options(shiny.maxRequestSize = 2000 * 1024^2)
 
+# The vcfModuleUI function defines the user interface for the VCF file 
+# analysis module, allowing users to upload a VCF file. 
 vcfModuleUI <- function(id) {
   ns <- NS(id)
   tagList(

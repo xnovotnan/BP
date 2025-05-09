@@ -2,7 +2,9 @@ library(shiny)
 library(shinyWidgets)
 library(shinyFiles)
 
-# UI komponent pre QUALIMAP porovnanie
+# The qualimapComparisonUI function defines the user interface for the QUALIMAP 
+# comparison module, allowing users to select a folder with QUALIMAP outputs.   
+
 qualimapComparisonUI <- function(id) {
   ns <- NS(id)
   tagList(

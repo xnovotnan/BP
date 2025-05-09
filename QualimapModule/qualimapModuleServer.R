@@ -4,7 +4,12 @@ library(shinyFiles)
 library(tinytex)
 source(file.path("QualimapModule", "qualimapAnalysis.R"))
 
-# Serverová časť modulu pre Qualimap analýzu
+# The qualimapModuleServer function defines the server logic for the QUALIMAP analysis module.
+# It processes the selected QUALIMAP folder, generates analysis components, updates the UI with 
+# the results. It also generates PDF report from the analysis components. 
+# The server function handles file reading, data processing, and renders the dynamic
+# components based on the uploaded file.
+
 qualimapModuleServer <- function(id) {
   moduleServer(id, function(input, output, session) {
     volumes <- c(Home = path.expand("~"), Desktop = "~/Desktop", Documents = "~/Documents")

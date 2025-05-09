@@ -4,6 +4,12 @@ library(tinytex)
 source(file.path("VCFModule", "mutationAnalysis.R"))
 library(plotly)
 
+# The vcfModuleServer function defines the server logic for the VCF file analysis module.
+# It processes the uploaded VCF file, generate analysis components, updates the UI with 
+# the results. It also generates PDF report from the analysis components. 
+# The server function handles file reading, data processing, and renders the dynamic
+# components based on the uploaded file.
+
 vcfModuleServer <- function(id) {
   moduleServer(id, function(input, output, session) {
     processed_data <- reactive({
@@ -45,9 +51,7 @@ vcfModuleServer <- function(id) {
     
     # SNP Analysis
     output$snp_value <- renderText({
-      data <- processed_data()
-      if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
-      snp_value(data)
+      snp_value(filtered_data())
     })
     snp_types_donut_plot <- reactive({
       snp_types_donut(filtered_data())
@@ -76,9 +80,7 @@ vcfModuleServer <- function(id) {
     
     # INDEL Analysis
     output$indel_values <- renderText({
-      data <- processed_data()
-      if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
-      indel_values(data)
+      indel_values(filtered_data())
     })
     indel_types_plot <- reactive({
       indel_types(filtered_data())
@@ -93,20 +95,16 @@ vcfModuleServer <- function(id) {
       ggplotly(indel_stacked_plot(), tooltip = "text")
     })
     output$indel_length_avg <- renderText({
-      data <- processed_data()
-      if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
-      indel_length_avg(data)
+      indel_length_avg(filtered_data())
     })
     output$indel_length_med <- renderText({
-      data <- processed_data()
-      if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
-      indel_length_med(data)
+      indel_length_med(filtered_data())
     })
     indel_length_plot <- reactive({
       indel_length(filtered_data())
     })
     output$indel_length <- renderPlotly({
-      ggplotly(indel_length_plot(), tooltip = "text")
+      ggplotly(indel_length_plot())
     })
     indel_length_boxplot_plot <- reactive({
       indel_length_boxplot(filtered_data())
@@ -117,14 +115,10 @@ vcfModuleServer <- function(id) {
     
     # Quality
     output$qual_avg <- renderText({
-      data <- processed_data()
-      if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
-      quality_avg(data)
+      quality_avg(filtered_data())
     })
     output$qual_med <- renderText({
-      data <- processed_data()
-      if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
-      quality_med(data)
+      quality_med(filtered_data())
     })
     quality_bar_plot <- reactive({
       quality_bar(filtered_data())
@@ -141,14 +135,10 @@ vcfModuleServer <- function(id) {
     
     # Allele frequency
     output$allele_freq_avg <- renderText({
-      data <- processed_data()
-      if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
-      allele_freq_avg(data)
+      allele_freq_avg(filtered_data())
     })
     output$allele_freq_med <- renderText({
-      data <- processed_data()
-      if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
-      allele_freq_med(data)
+      allele_freq_med(filtered_data())
     })
     allele_freq_hexbin_plot <- reactive({
       allele_freq_hexbin(filtered_data())
@@ -165,14 +155,10 @@ vcfModuleServer <- function(id) {
       
     # Read Depth
     output$read_depth_avg <- renderText({
-      data <- processed_data()
-      if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
-      read_depth_avg(data)
+      read_depth_avg(filtered_data())
     })
     output$read_depth_med <- renderText({
-      data <- processed_data()
-      if(input$chrom_select != "All"){data %<>% filter(CHROM == input$chrom_select)}
-      read_depth_med(data)
+      read_depth_med(filtered_data())
     })
     read_depth_density_plot <- reactive({
       read_depth_density(filtered_data())

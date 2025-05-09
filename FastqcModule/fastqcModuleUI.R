@@ -2,7 +2,9 @@ library(shiny)
 library(shinyWidgets)
 library(shinyFiles)
 
-# UI komponent pre FastQC analýzu
+# The fastqcModuleUI function defines the user interface for the FASTQC
+# analysis module, allowing users to upload a FASTQC folder. 
+
 fastqcModuleUI <- function(id) {
   ns <- NS(id)
   tagList(

@@ -4,7 +4,12 @@ library(shinyFiles)
 library(tinytex)
 source(file.path("QualimapComparisonModule", "qualimapComparison.R"))
 
-# Serverová časť modulu pre Qualimap porovnanie
+# The comparisonModuleServer function defines the server logic for the QUALIMAP comparison module.
+# It processes the selected folder with QUALIMAP outputs, generates analysis components, updates the UI with 
+# the results. It also generates PDF report from the analysis components. 
+# The server function handles file reading, data processing, and renders the dynamic
+# components based on the uploaded file.
+
 comparisonModuleServer <- function(id) {
   moduleServer(id, function(input, output, session) {
     volumes <- c(TUTUTUUTUTUUT = "~/Documents/BP/data/whitespring.qualimap", Home = path.expand("~"))

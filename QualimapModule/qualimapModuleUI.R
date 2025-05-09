@@ -2,7 +2,8 @@ library(shiny)
 library(shinyWidgets)
 library(shinyFiles)
 
-# UI komponent pre Qualimap analýzu
+# The qualimapModuleUI function defines the user interface for the QUALIMAP 
+# analysis module, allowing users to select a QUALIMAP folder.  
 qualimapModuleUI <- function(id) {
   ns <- NS(id)
   tagList(

@@ -6,6 +6,10 @@ source(file.path("QualimapModule", "qualimapModuleUI.R"))
 source(file.path("QualimapComparisonModule", "qualimapComparisonUI.R"))
 source(file.path("FastqcModule", "fastqcModuleUI.R"))
 
+# The ui function defines the main user interface in the application. 
+# It displays the modules user interfaces in individual nav_panels, connecting 
+# them with their server logic via the IDs.   
+
 ui <- page(
   title = "Dashboard App",
   div(class = "p-5",  

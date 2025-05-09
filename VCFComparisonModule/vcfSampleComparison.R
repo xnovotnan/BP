@@ -9,7 +9,13 @@ library(eulerr)
 library(grid)
 library(gridExtra)
 
-# Preprocess vcf data
+# The process_vcf function reads the VCF file using the vroom package. The 
+# relevant data is extracted from the file. The mutations are classified into 
+# mutation types (SNP or INDEL) and subtypes (transitions or transversions, 
+# insertion, deletion, or structural variant) based on the REF and ALT field.
+# The data is then filtered based on QUAL, GT, and DP thresholds. The AF is 
+# calculated from the AD and DP values. The name and family id are extracted 
+# from the filename. 
 process_vcf <- function(vcf_file){
   incProgress(0.1, detail = "Processing data...")
   name <- basename(vcf_file)
@@ -53,6 +59,9 @@ process_vcf <- function(vcf_file){
     data = list(vcf_tibble)
   )
 }
+
+# The prepare_vcf_files function lists all VCF files from the selected folder 
+#and process them using the process_vcf function
 prepare_vcf_files <- function(folder_path){
   files <- list.files(folder_path, pattern = "\\.vcf.gz$", full.names = TRUE)
   vcf_data <- purrr::map_dfr(files, process_vcf)
@@ -62,8 +71,10 @@ prepare_vcf_files <- function(folder_path){
 
 # Mutation Counts
 num_of_mutation <- function(vcf_data){
-  vcf_data %<>% mutate(mutation_count = map_int(data, nrow),
-                       label = paste0(name, " - \n", label_comma()(mutation_count)))
+  # calculates number of mutation per file and generates labels
+  vcf_data %<>% 
+    mutate(mutation_count = map_int(data, nrow),
+           label = paste0(name, " - \n", label_comma()(mutation_count)))
 
   p <- ggplot(vcf_data, aes(x = mutation_count, y = reorder(name, mutation_count), fill = name)) +
     geom_bar(stat = "identity", show.legend = FALSE) +
@@ -75,16 +86,18 @@ num_of_mutation <- function(vcf_data){
   p
 }
 mutation_heatmap <- function(vcf_data){
+  # calculates mutation counts per chromosome for each file 
   vcf_data %<>%
     unnest(data) %>%
     group_by(name, CHROM) %>%
     summarise(count = n(), .groups = "drop") %>%
     select(name, CHROM, count)
   
-  p <- ggplot(vcf_data, aes(CHROM, name, fill= count,
-                            text = paste0("Sample: ", name, "\n",
-                                          "Chromosome: ", CHROM, "\n",
-                                          "Count: ", count))) + 
+  p <- ggplot(vcf_data, 
+              aes(CHROM, name, fill= count,
+                  text = paste0("Sample: ", name, "\n",
+                                "Chromosome: ", CHROM, "\n",
+                                "Count: ", count))) + 
     geom_tile() +
     labs(title = "Mutation Counts across Chromosomes",
          x = element_blank(),
@@ -100,6 +113,7 @@ mutation_heatmap <- function(vcf_data){
   p
 }
 mutation_types_distribution <- function(vcf_data){
+  # calculates percentual distribution of mutation types for each file 
   mutationCounts <- vcf_data %>%
     unnest(data) %>%
     select(name, TYPE) %>%
@@ -109,10 +123,11 @@ mutation_types_distribution <- function(vcf_data){
     mutate(percentage = round(count * 100/ sum(count),2))
   mutationCounts$TYPE <- with(mutationCounts, reorder(TYPE, percentage))
   
-  p <- ggplot(mutationCounts, aes(x = name, y = percentage, fill = TYPE,
-                                  text = paste0("Sample: ", name, "\n",
-                                                "Type: ", TYPE, "\n",
-                                                "Percentage: ", percentage, "%"))) +
+  p <- ggplot(mutationCounts, 
+              aes(x = name, y = percentage, fill = TYPE,
+                  text = paste0("Sample: ", name, "\n",
+                                "Type: ", TYPE, "\n",
+                                "Percentage: ", percentage, "%"))) +
     geom_bar(stat = "identity", position = "stack") +
     labs(x = element_blank(), y = "Percentage", title = "Distribution of Mutation Types Across Samples (%)") +
     coord_flip() +
@@ -125,6 +140,7 @@ mutation_types_distribution <- function(vcf_data){
   p
 }
 mutation_subtypes_distribution <- function(vcf_data){
+  # calculates percentual distribution of mutation subtypes for each file 
   mutationCounts <- vcf_data %>%
     unnest(data) %>%
     select(name, SUBTYPE) %>%
@@ -134,10 +150,11 @@ mutation_subtypes_distribution <- function(vcf_data){
     mutate(percentage = round(count * 100/ sum(count),2))
   mutationCounts$SUBTYPE <- with(mutationCounts, reorder(SUBTYPE, percentage))
   
-  p <- ggplot(mutationCounts, aes(x = name, y = percentage, fill = SUBTYPE,
-                                  text = paste0("Sample: ", name, "\n",
-                                                "Type: ", SUBTYPE, "\n",
-                                                "Percentage: ", percentage, "%"))) +
+  p <- ggplot(mutationCounts, 
+              aes(x = name, y = percentage, fill = SUBTYPE,
+                  text = paste0("Sample: ", name, "\n",
+                                "Type: ", SUBTYPE, "\n",
+                                "Percentage: ", percentage, "%"))) +
     geom_bar(stat = "identity", position = "stack") +
     labs(x = element_blank(), y = "Percentage", title = "Distribution of Mutation Subtypes Across Samples (%)") +
     coord_flip() +
@@ -152,6 +169,7 @@ mutation_subtypes_distribution <- function(vcf_data){
 
 # SNP Analysis
 snp_class_comparison <- function(vcf_data){
+  # calculates percentual distribution of SNP substitution types for each file 
   vcf_data %<>% 
     unnest(data) %>%
     filter(TYPE == "SNP") %>%
@@ -181,6 +199,7 @@ snp_class_comparison <- function(vcf_data){
   p
 }
 transversion_transitions <- function(vcf_data){
+  # calculates percentual distribution of SNP subtypes for each file 
   mutationCounts <- vcf_data %>%
     unnest(data) %>%
     filter(TYPE == "SNP") %>%
@@ -191,12 +210,15 @@ transversion_transitions <- function(vcf_data){
     mutate(percentage = round(count * 100/ sum(count),2))
   mutationCounts$SUBTYPE <- with(mutationCounts, reorder(SUBTYPE, percentage, FUN = sum))
   
-  p <- ggplot(mutationCounts, aes(x = name, y = percentage, fill = SUBTYPE,
-                                  text = paste0("Sample: ", name, "\n",
-                                                "Type: ", SUBTYPE, "\n",
-                                                "Percentage: ", percentage, "%"))) +
+  p <- ggplot(mutationCounts, 
+              aes(x = name, y = percentage, fill = SUBTYPE,
+                  text = paste0("Sample: ", name, "\n",
+                                "Type: ", SUBTYPE, "\n",
+                                "Percentage: ", percentage, "%"))) +
     geom_bar(stat = "identity", position = "dodge") +
-    labs(x = element_blank(), y = "Percentage", title = "Transversions-Transitions Distribution on Samples (%)") +
+    labs(x = element_blank(), 
+         y = "Percentage", 
+         title = "Transversions-Transitions Distribution on Samples (%)") +
     coord_flip() +
     scale_fill_brewer(palette = "Set3")+
     theme_classic()+
@@ -209,6 +231,7 @@ transversion_transitions <- function(vcf_data){
 
 # INDEL Analysis
 insertion_deletions <- function(vcf_data){
+  # calculates percentual distribution of INDEL subtypes for each file 
   mutationCounts <- vcf_data %>%
     unnest(data) %>%
     filter(TYPE == "INDEL") %>%
@@ -219,12 +242,15 @@ insertion_deletions <- function(vcf_data){
     mutate(percentage = round(count * 100/ sum(count),2))
   mutationCounts$SUBTYPE <- with(mutationCounts, reorder(SUBTYPE, percentage, FUN = sum))
   
-  p <- ggplot(mutationCounts, aes(x = name, y = percentage, fill = SUBTYPE,
-                                  text = paste0("Sample: ", name, "\n",
-                                                "Type: ", SUBTYPE, "\n",
-                                                "Percentage: ", percentage, "%"))) +
+  p <- ggplot(mutationCounts, 
+              aes(x = name, y = percentage, fill = SUBTYPE,
+                  text = paste0("Sample: ", name, "\n",
+                                "Type: ", SUBTYPE, "\n",
+                                "Percentage: ", percentage, "%"))) +
     geom_bar(stat = "identity", position = "dodge") +
-    labs(x = element_blank(), y = "Percentage", title = "Insertion-Deletion Distribution on Samples (%)") +
+    labs(x = element_blank(), 
+         y = "Percentage", 
+         title = "Insertion-Deletion Distribution on Samples (%)") +
     coord_flip() +
     scale_fill_brewer(palette = "Set3")+
     theme_classic()+
@@ -235,6 +261,7 @@ insertion_deletions <- function(vcf_data){
   p
 }
 indel_len_boxplot <- function(vcf_data){
+  # calculates INDEL size for each mutation
   vcf_data %<>% 
     unnest(data) %>%
     filter(TYPE == "INDEL") %>%
@@ -242,7 +269,9 @@ indel_len_boxplot <- function(vcf_data){
     
   p <- ggplot(vcf_data, aes(x = length, y = name, fill = name)) +
     geom_boxplot(show.legend = FALSE) +
-    labs(title = "INDEL Size per Sample",  x = "Length (bp)", y = element_blank()) +
+    labs(title = "INDEL Size per Sample", 
+         x = "Length (bp)", 
+         y = element_blank()) +
     theme_classic() +
     scale_fill_brewer(palette = "Set3") +
     theme(plot.title = element_text(hjust = 0.5, size = 18, face = "bold"),
@@ -254,13 +283,13 @@ indel_len_boxplot <- function(vcf_data){
 
 # Quality Analysis
 quality_boxplot <- function(vcf_data){
-  vcf_data %<>%
-    unnest(data) %>%
-    select(name, QUAL)
+  vcf_data %<>% unnest(data)
   
   p <- ggplot(vcf_data, aes(x = QUAL, y = name, fill = name)) +
     geom_boxplot(show.legend = FALSE) +
-    labs(title = "Quality per Sample",  x = "Quality", y = element_blank()) +
+    labs(title = "Quality per Sample",
+         x = "Quality", 
+         y = element_blank()) +
     theme_classic() +
     scale_fill_brewer(palette = "Set3") +
     theme(plot.title = element_text(hjust = 0.5, size = 18, face = "bold"),
@@ -268,16 +297,12 @@ quality_boxplot <- function(vcf_data){
           axis.text.y = element_text(size = 14),
           axis.title.x =  element_text(size = 14))+
     scale_x_continuous(labels = comma)
-  
   p
 }
 
 # Allele Frequency Analysis
 frequency_ridges <- function(vcf_data){
-  vcf_data %<>%
-    unnest(data) %>%
-    select(name, AF)
-  
+  vcf_data %<>% unnest(data)
   p <- ggplot(vcf_data, aes(x=AF, y=name, fill=name)) +
     geom_density_ridges() +
     labs(title = "Allele Frequency Across Samples",
@@ -295,10 +320,7 @@ frequency_ridges <- function(vcf_data){
 
 # Read Depth Analysis
 read_depth <- function(vcf_data){
-  vcf_data %<>%
-    unnest(data) %>%
-    select(name, DP)
-  
+  vcf_data %<>% unnest(data)
   p <- ggplot(vcf_data, aes(x=DP, y=name, fill= name)) +
     geom_violin(color="black") +
     labs(title = "Read depth Across Samples",
@@ -316,13 +338,13 @@ read_depth <- function(vcf_data){
 
 # VENN DIAGRAM 2 FILES
 venn_diagram <- function(file1, file2, data){
+  # generates identifiers for each mutation from the CHROM, POS, REF and ALT fields
   incProgress(0.2, detail = "Processing first file...")
   data1 <- data %>% filter(name == file1) %>%
     pull(data) %>%
     .[[1]] %>%
     mutate(ID = paste0(CHROM, "_", POS, "_", REF, "_", ALT))%>%
     select(ID)
-  
   incProgress(0.2, detail = "Processing second file...")
   data2 <- data %>% filter(name == file2) %>%
     pull(data) %>%
@@ -330,6 +352,7 @@ venn_diagram <- function(file1, file2, data){
     mutate(ID = paste0(CHROM, "_", POS, "_", REF, "_", ALT))%>%
     select(ID)
   
+  # calculates overlapping and unique mutation counts
   incProgress(0.15, detail = "Computing overlaps...")
   n_only1 <-  setdiff(data1, data2) %>% nrow()
   n_only2 <- setdiff(data2, data1) %>% nrow()
@@ -342,7 +365,6 @@ venn_diagram <- function(file1, file2, data){
     "VCF1&VCF2" = n_common
   ))
   incProgress(0.2, detail = "Generating venn diagram...")
-  
   venn_plot <- plot(fit,
                     fills = c("skyblue", "orange"),
                     labels = TRUE,
@@ -353,20 +375,19 @@ venn_diagram <- function(file1, file2, data){
 
 # VENN DIAGRAM 3 FILES
 venn_diagram_3files <- function(file1, file2, file3, data) {
+  # generates identifiers for each mutation from the CHROM, POS, REF and ALT fields
   incProgress(0.15, detail = "Processing first file...")
   data1 <- data %>% filter(name == file1) %>%
     pull(data) %>%
     .[[1]] %>%
     mutate(ID = paste0(CHROM, "_", POS, "_", REF, "_", ALT))%>%
     select(ID)
-  
   incProgress(0.15, detail = "Processing second file...")
   data2 <- data %>% filter(name == file2) %>%
     pull(data) %>%
     .[[1]]%>%
     mutate(ID = paste0(CHROM, "_", POS, "_", REF, "_", ALT))%>%
     select(ID)
-
   incProgress(0.15, detail = "Processing third file...")
   data3 <- data %>% filter(name == file3) %>%
     pull(data) %>%
@@ -374,6 +395,7 @@ venn_diagram_3files <- function(file1, file2, file3, data) {
     mutate(ID = paste0(CHROM, "_", POS, "_", REF, "_", ALT))%>%
     select(ID)
   
+  # calculates overlapping and unique mutation counts
   n_only1 <-  setdiff(data1, union(data2, data3)) %>% nrow()
   n_only2 <- setdiff(data2, union(data1, data3)) %>% nrow()
   n_only3 <- setdiff(data3, union(data1, data2)) %>% nrow()
@@ -398,9 +420,5 @@ venn_diagram_3files <- function(file1, file2, file3, data) {
                     labels = TRUE,
                     quantities = TRUE
   )
-  
   venn_plot
 }
-
-
-
