@@ -57,17 +57,11 @@ comparisonModuleServer <- function(id) {
     })
     
     # Insert Size
-    output$insert_size_comparison <- renderPlot({
-      insert_size_comparison(processed_data())
-    })
     output$insert_size_mean_comparison <- renderPlot({
       insert_size_mean_comparison(processed_data())
     })
     
     # Data Coverage
-    output$coverage_comparison <- renderPlot({
-      coverage_comparison(processed_data())
-    })
     output$coverage_mean_comparison <- renderPlot({
       coverage_mean_comparison(processed_data())
     })
@@ -98,9 +92,7 @@ comparisonModuleServer <- function(id) {
             mapped_bases_comparison = mapped_bases_comparison(processed_data()),
             duplicated_reads_comparison = duplicated_reads(processed_data()),
             mapping_quality_comparison = mapping_quality_comparison(processed_data()),
-            insert_size_comparison = insert_size_comparison(processed_data()),
             insert_size_mean_comparison = insert_size_mean_comparison(processed_data()),
-            coverage_comparison = coverage_comparison(processed_data()),
             coverage_mean_comparison = coverage_mean_comparison(processed_data()),
             gc_percentage_comparison = gc_comparison(processed_data()),
             actg_content_comparison = stacked_actg(processed_data())
@@ -165,8 +157,7 @@ comparisonModuleServer <- function(id) {
           )
         ),
         fluidRow(
-          column(6, plotOutput(ns("insert_size_comparison"))),
-          column(6, plotOutput(ns("insert_size_mean_comparison")))
+          column(12, plotOutput(ns("insert_size_mean_comparison")))
         ),
         tags$hr(),
         tags$h4(
@@ -178,8 +169,7 @@ comparisonModuleServer <- function(id) {
           )
         ),
         fluidRow(
-          column(6, plotOutput(ns("coverage_comparison"))),
-          column(6, plotOutput(ns("coverage_mean_comparison")))
+          column(12, plotOutput(ns("coverage_mean_comparison")))
         ),
         tags$hr(),
         tags$h4(

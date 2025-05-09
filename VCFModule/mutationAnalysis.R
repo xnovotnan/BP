@@ -8,42 +8,43 @@ options(scipen = 999)
 
 # Data processing
 prepare_data <- function(vcf_file){
-  suppressMessages({
-    incProgress(0.1, detail = "Reading file...")
-    vcf_tibble <- vroom::vroom(
-      file = vcf_file,
-      delim = "\t",
-      comment = "##"
-    )
-    incProgress(0.3, detail = "Processing data...")
-    vcf_tibble %<>% 
-      rename("VALUES" = last(colnames(.)), "CHROM" = first(colnames(.))) %>%
-      mutate(
-        GT = str_split(VALUES, ":") %>% map_chr(~ .x[1]),
-        AD = str_split(VALUES, ":") %>% map_chr(~ .x[2]) %>% str_split(",") %>% map_int(~ as.integer(.x[1])),
-        DP = str_split(VALUES, ":") %>% map_int(~ as.integer(.x[3])),
-        TYPE = ifelse(nchar(REF) == 1 & nchar(ALT) == 1,"SNP", "INDEL")) %>%
-      filter(QUAL > 200, 
-             GT %in% c("1|1", "0|1", "1|0", "1/1", "0/1", "1/0"),
-             DP>0,
-             CHROM != "chrM")
-    incProgress(0.7, detail = "Categorizing mutations...")
-    purines <- c("A", "G")
-    pyrimidines <- c("C", "T")
-    vcf_tibble %<>% mutate(
-      SUBTYPE = ifelse(TYPE == "SNP", 
-                       ifelse((REF %in% purines & ALT %in% purines) | (REF %in% pyrimidines & ALT %in% pyrimidines), "Transition", "Transversion"), 
-                       ifelse(nchar(REF) > nchar(ALT),"Deletion", "Insertion")),
-      AF = round(AD/DP, 2)
-    )
-    incProgress(0.9, detail = "Completing preprocessing...")
-    vcf_tibble$CHROM <- factor(vcf_tibble$CHROM, levels = c(paste0("chr", 1:22), "chrX", "chrY", "chrM"))
-    vcf_tibble %<>% select(c("CHROM", "POS", "REF", "ALT", "TYPE", "SUBTYPE", "QUAL", "GT", "AD", "DP", "AF"))
-    vcf_tibble
-  })
+  incProgress(0.1, detail = "Reading file...")
+  vcf_tibble <- vroom::vroom(
+    file = vcf_file,
+    delim = "\t",
+    comment = "##"
+  )
+  incProgress(0.3, detail = "Processing data...")
+  vcf_tibble %<>% 
+    rename("VALUES" = last(colnames(.)), "CHROM" = first(colnames(.))) %>%
+    mutate(
+      GT = str_split(VALUES, ":") %>% map_chr(~ .x[1]),
+      AD = str_split(VALUES, ":") %>% map_chr(~ .x[2]) %>% str_split(",") %>% map_int(~ as.integer(.x[1])),
+      DP = str_split(VALUES, ":") %>% map_int(~ as.integer(.x[3])),
+      TYPE = ifelse(nchar(REF) == 1 & nchar(ALT) == 1,"SNP", "INDEL")) %>%
+    filter(QUAL > 50, 
+           GT %in% c("1|1", "0|1", "1|0", "1/1", "0/1", "1/0"),
+           DP>0,
+           CHROM != "chrM")
+  incProgress(0.7, detail = "Categorizing mutations...")
+  purines <- c("A", "G")
+  pyrimidines <- c("C", "T")
+  vcf_tibble %<>% mutate(
+    SUBTYPE = ifelse(TYPE == "SNP", 
+                     ifelse((REF %in% purines & ALT %in% purines) | (REF %in% pyrimidines & ALT %in% pyrimidines), "Transition", "Transversion"), 
+                     ifelse(nchar(REF) > nchar(ALT),"Deletion", "Insertion")),
+    AF = round(AD/DP, 2)
+  )
+  incProgress(0.9, detail = "Completing preprocessing...")
+  vcf_tibble$CHROM <- factor(vcf_tibble$CHROM, levels = c(paste0("chr", 1:22), "chrX", "chrY"))
+  vcf_tibble %<>% select(c("CHROM", "POS", "REF", "ALT", "TYPE", "SUBTYPE", "QUAL", "GT", "AD", "DP", "AF"))
+  vcf_tibble
 }
 
 # Mutation Counts
+mutation_count <- function(vcf_tibble){
+  sprintf("Mutation Count: %s", label_comma()(dim(vcf_tibble)[1]))
+}
 mutation_donut <- function(vcf_tibble, subtypes=FALSE){
   if (subtypes) vcf_tibble$TYPE <- vcf_tibble$SUBTYPE
   mutationCounts <- vcf_tibble %>%
@@ -64,7 +65,7 @@ mutation_donut <- function(vcf_tibble, subtypes=FALSE){
                      aes(y = pos, label = paste0(TYPE, "s\n", percentage, "%\n", label_comma()(count))),
                      size = 4.5, nudge_x = 1, show.legend = FALSE) +
     theme_void() +
-    theme(plot.title = element_text(hjust = 0.5, size = 14, face = "bold")) +
+    theme(plot.title = element_text(hjust = 0.5, size = 18, face = "bold")) +
     labs(title = "Mutation Type Distribution")
   p
 }
@@ -76,15 +77,18 @@ mutation_distribution <- function(vcf_tibble, subtypes=FALSE){
     group_by(CHROM) %>%
     mutate(percentage = round(count * 100/ sum(count),2))
   
-  p <- ggplot(mutationCounts, aes(x = CHROM, y = percentage, fill = TYPE)) +
-    geom_bar(stat = "identity", position = "stack", show.legend = FALSE) +
+  p <- ggplot(mutationCounts, aes(x = CHROM, y = percentage, fill = TYPE,
+                                  text = paste0("Type: ", TYPE, "\n",
+                                                "Percentage: ", percentage, "%"))) +
+    geom_bar(stat = "identity", position = "stack") +
     labs(x = element_blank(), y = "Percentage", title = "Mutation Type Distribution Across Chromosomes (%)") +
     coord_flip() +
     scale_fill_brewer(palette = "Set3")+
     theme_classic()+
     theme(plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
-          axis.text.x = element_text(size = 12),
-          axis.text.y = element_text(size = 12))
+          axis.text.x = element_text(size = 10),
+          axis.text.y = element_text(size = 10),
+          legend.title = element_blank())
   p
 }
 
@@ -116,7 +120,7 @@ snp_types_donut <- function(vcf_tibble){
                      aes(y = pos, label = paste0(SUBTYPE, "s\n", percentage, "%\n", label_comma()(count))),
                      size = 4.5, nudge_x = 1, show.legend = FALSE) +
     theme_void() +
-    theme(plot.title = element_text(hjust = 0.5, size = 14, face = "bold")) +
+    theme(plot.title = element_text(hjust = 0.5, size = 18, face = "bold")) +
     labs(title = "SNP Type Distribution")
   p
 }
@@ -126,7 +130,10 @@ snp_class_stacked <- function(vcf_tibble){
     mutate(percentage = round(n *100/ sum(n), 2))
   vcf_tibble$SNP_TYPE <- with(vcf_tibble, reorder(SNP_TYPE, percentage, FUN = sum))
   
-  p <- ggplot(vcf_tibble, aes(x = percentage, y = CHROM, fill = SNP_TYPE)) +
+  p <- ggplot(vcf_tibble, aes(x = percentage, y = CHROM, fill = SNP_TYPE,
+                              text = paste0("Type: ", SNP_TYPE, "\n",
+                                            "Chromosome: ", CHROM, "\n",
+                                            "Percentage: ", percentage, "%"))) +
     geom_bar(stat = "identity", position = "stack") + 
     labs(x = "Percentage",
          y = element_blank(), 
@@ -134,8 +141,8 @@ snp_class_stacked <- function(vcf_tibble){
     theme_classic() +
     scale_fill_brewer(palette = "Set3") +
     theme(plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
-          axis.text.x = element_text(size = 12),
-          axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 10),
+          axis.text.y = element_text(size = 10),
           legend.title = element_blank(),
           legend.position = "right",)
   p
@@ -158,10 +165,12 @@ snp_class_boxplot <- function(vcf_tibble){
          x = "Base Substitution",
          y = "Percentage") +
     theme_classic()+
-    theme(plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
+    theme(plot.title = element_text(hjust = 0.5, size = 18, face = "bold"),
           legend.title = element_blank(),
-          axis.text.x = element_text(size = 12),
-          axis.text.y = element_text(size = 12)) +
+          axis.text.x = element_text(size = 14),
+          axis.text.y = element_text(size = 14),
+          axis.title.x =  element_text(size = 14),
+          axis.title.y =  element_text(size = 14)) +
     scale_fill_brewer(palette = "Set3")
   p
 }
@@ -174,11 +183,9 @@ snp_class_barplot <- function(vcf_tibble){
   
   p <- ggplot(vcf_tibble, aes(x = percentage, y = reorder(SNP_TYPE, n), fill = SNP_TYPE)) +
     geom_bar(stat = "identity", show.legend = FALSE) +
-    labs(title = "SNP Substitution Type Distribution (%)", 
-         x = "Percentage", 
-         y = "Base Substitution") +
-    theme_classic() +
-    theme(plot.title = element_text(hjust = 0.5, size = 14, face = "bold")) +
+    labs(title = "SNP Substitution Type Distribution (%)") +
+    theme_void() +
+    theme(plot.title = element_text(hjust = 0.5, size = 18, face = "bold")) +
     geom_text(aes(x = percentage/2, label = label), size = 4, color = "black")+
     scale_fill_brewer(palette = "Set3")
   p
@@ -212,7 +219,7 @@ indel_types <- function(vcf_tibble){
                      aes(y = pos, label = paste0(SUBTYPE, "s\n", percentage, "%\n", label_comma()(count))),
                      size = 4.5, nudge_x = 1, show.legend = FALSE) +
     theme_void() +
-    theme(plot.title = element_text(hjust = 0.5, size = 14, face = "bold")) +
+    theme(plot.title = element_text(hjust = 0.5, size = 18, face = "bold")) +
     labs(title = "Insertion-Deletion Distribution")
   p
 }
@@ -221,7 +228,10 @@ indel_stacked <- function(vcf_tibble){
     summarise(count = n()) %>%
     mutate(percentage = round(count *100/ sum(count), 2))
   
-  p <- ggplot(vcf_tibble, aes(x = percentage, y = CHROM, fill = SUBTYPE)) +
+  p <- ggplot(vcf_tibble, aes(x = percentage, y = CHROM, fill = SUBTYPE,
+                              text = paste0("Type: ", SUBTYPE, "\n",
+                                            "Chromosome: ", CHROM, "\n",
+                                            "Percentage: ", percentage, "%"))) +
     geom_bar(stat = "identity", position = "stack") + 
     labs(x = "Percentage", 
          y = element_blank(), 
@@ -230,38 +240,40 @@ indel_stacked <- function(vcf_tibble){
     scale_fill_brewer(palette = "Set3") +
     theme(legend.position = "right",
           plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
-          axis.text.x = element_text(size = 12),
-          axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 10),
+          axis.text.y = element_text(size = 10),
           legend.title = element_blank())
   p
 }
 indel_length_avg <- function(vcf_tibble){
   vcf_tibble %<>% filter(TYPE == "INDEL") %>%
     mutate(length = abs(nchar(ALT) - nchar(REF)))
-  sprintf("Mean INDEL length: %s", round(mean(vcf_tibble$length),2))
+  sprintf("Mean INDEL size: %s", round(mean(vcf_tibble$length),2))
 }
 indel_length_med <- function(vcf_tibble){
   vcf_tibble %<>% filter(TYPE == "INDEL") %>%
     mutate(length = abs(nchar(ALT) - nchar(REF)))
-  sprintf("Median INDEL length: %s", median(vcf_tibble$length))
+  sprintf("Median size length: %s", median(vcf_tibble$length))
 }
 indel_length <- function(vcf_tibble){
   vcf_tibble %<>% filter(TYPE == "INDEL") %>%
-    mutate(length = abs(nchar(ALT) - nchar(REF)))
+    mutate(length = nchar(ALT) - nchar(REF)) %>%
+    group_by(SUBTYPE) %>%
+    mutate(count = n())
   
-  p <- ggplot(vcf_tibble, aes(x = length)) +
-    geom_histogram(aes(y = ..density..),
-                   binwidth = 1, 
+  p <- ggplot(vcf_tibble, aes(x = length, fill=SUBTYPE,
+                              text = paste0("Type: ", SUBTYPE, "\n",
+                                            "Count: ", count, "\n"))) +
+    geom_histogram(binwidth = 3, 
                    position = "dodge", 
-                   fill = "purple",
                    alpha = 0.6) +
-    # geom_density(color = "darkblue", size = 1.2) +  # density plot
     labs(x = "Length (bp)", 
          y = "Mutation Count",
          title = "Distribution of INDEL Sizes") +
     theme_classic() +
-    theme(legend.position = "none", 
-          plot.title = element_text(hjust = 0.5, size = 12, face = "bold"),
+    scale_y_continuous(labels = comma) +
+    theme(legend.title = element_blank(), 
+          plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
           axis.text.x = element_text(size = 10),
           axis.text.y = element_text(size = 10))
   p
@@ -277,9 +289,11 @@ indel_length_boxplot <- function(vcf_tibble){
          y = "Length (bp)") +
     theme_classic() +
     scale_fill_brewer(palette = "Set3")+
-    theme(axis.text.x = element_text(size = 12),
-          axis.text.y = element_text(size = 12),
-          plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),)
+    theme(axis.text.x = element_text(size = 14),
+          axis.text.y = element_text(size = 14),
+          plot.title = element_text(hjust = 0.5, size = 18, face = "bold"),
+          axis.title.x =  element_text(size = 14),
+          axis.title.y =  element_text(size = 14))
   p
 }
 
@@ -300,10 +314,10 @@ quality_bar <- function(vcf_tibble){
     scale_x_continuous(labels = comma) +
     scale_fill_gradientn(colors = c("lightgreen", "green4")) +
     theme(plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
-          axis.text.x = element_text(size = 12),
-          axis.text.y = element_text(size = 12),
-          axis.title.x = element_text(size = 12),
-          axis.title.y = element_text(size = 12),
+          axis.text.x = element_text(size = 10),
+          axis.text.y = element_text(size = 10),
+          axis.title.x = element_text(size = 10),
+          axis.title.y = element_text(size = 10),
           legend.title = element_blank())
   p
 }
@@ -315,9 +329,10 @@ quality_on_chroms <- function(vcf_tibble){
          y = "Quality") +
     theme_classic() +
     theme(legend.position = "none",  
-          plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
-          axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = 1, size=12),
-          axis.text.y = element_text(size = 12))
+          plot.title = element_text(hjust = 0.5, size = 18, face = "bold"),
+          axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = 1, size=14),
+          axis.text.y = element_text(size = 14),
+          axis.title.y =  element_text(size = 14))
   p
 }
 
@@ -338,10 +353,10 @@ allele_freq_hexbin <- function(vcf_tibble){
     scale_x_continuous(labels = comma) +
     scale_fill_gradientn(colors = c("skyblue1", "blue4")) +
     theme(plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
-          axis.text.x = element_text(size = 12),
-          axis.text.y = element_text(size = 12),
-          axis.title.x = element_text(size = 12),
-          axis.title.y = element_text(size = 12),
+          axis.text.x = element_text(size = 10),
+          axis.text.y = element_text(size = 10),
+          axis.title.x = element_text(size = 10),
+          axis.title.y = element_text(size = 10),
           legend.title = element_blank())
   p
 }
@@ -353,9 +368,10 @@ allele_freq_on_chroms <- function(vcf_tibble){
          y=element_blank()) +
     theme_classic() +
     theme(legend.position = "none", 
-          plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
-          axis.text.x = element_text(size = 12),
-          axis.text.y = element_text(size = 12))
+          plot.title = element_text(hjust = 0.5, size = 18, face = "bold"),
+          axis.text.x = element_text(size = 14),
+          axis.text.y = element_text(size = 14),
+          axis.title.x =  element_text(size = 14))
   p
 }
 
@@ -376,10 +392,10 @@ read_depth_density <- function(vcf_tibble){
     scale_x_continuous(labels = comma) +
     scale_fill_gradientn(colors = c("lightgreen", "green4")) +
     theme(plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
-          axis.text.x = element_text(size = 12),
-          axis.text.y = element_text(size = 12),
-          axis.title.x = element_text(size = 12),
-          axis.title.y = element_text(size = 12),
+          axis.text.x = element_text(size = 10),
+          axis.text.y = element_text(size = 10),
+          axis.title.x = element_text(size = 10),
+          axis.title.y = element_text(size = 10),
           legend.title = element_blank())
   p
 }
@@ -391,8 +407,9 @@ read_depth_on_chroms <- function(vcf_tibble){
          y = "Read Depth") +
     theme_classic() +
     theme(legend.position = "none",  
-          plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
-          axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = 1, size=12),
-          axis.text.y = element_text(size = 12))
+          plot.title = element_text(hjust = 0.5, size = 18, face = "bold"),
+          axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = 1, size=14),
+          axis.text.y = element_text(size = 14),
+          axis.title.y =  element_text(size = 14))
   p
 }

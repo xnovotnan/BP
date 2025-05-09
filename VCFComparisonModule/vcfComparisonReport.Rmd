@@ -28,62 +28,62 @@ params:
 
 
 ## Mutation Counts
-```{r echo=FALSE, out.width="80%"}
+```{r echo=FALSE, message=FALSE, warning=FALSE, out.width="80%"}
 print(params$num_of_mutation)
 ```
 
 
-```{r echo=FALSE, out.width="80%"}
+```{r echo=FALSE, message=FALSE, warning=FALSE, out.width="80%"}
 print(params$mutation_heatmap)
 ```
 
 
-```{r echo=FALSE, out.width="80%"}
+```{r echo=FALSE, message=FALSE, warning=FALSE, out.width="80%"}
 print(params$mutation_types_distribution)
 ```
 
 
-```{r echo=FALSE, out.width="80%"}
+```{r echo=FALSE, message=FALSE, warning=FALSE, out.width="80%"}
 print(params$mutation_subtypes_distribution)
 ```
 
 
 ## Single Nucleotide Polymorphism (SNP) Analysis
-```{r echo=FALSE, out.width="80%"}
+```{r echo=FALSE, message=FALSE, warning=FALSE, out.width="80%"}
 print(params$snp_class_comparison)
 ```
 
 
-```{r echo=FALSE, out.width="80%"}
+```{r echo=FALSE, message=FALSE, warning=FALSE, out.width="80%"}
 print(params$transversion_transitions)
 ```
 
 
 ## Insertion and Deletion (INDEL) Analysis
-```{r echo=FALSE,out.width="80%"}
+```{r echo=FALSE, message=FALSE, warning=FALSE, out.width="80%"}
 print(params$insertion_deletions)
 ```
 
 
-```{r echo=FALSE, out.width="80%"}
+```{r echo=FALSE, message=FALSE, warning=FALSE, out.width="80%"}
 print(params$indel_len_boxplot)
 ```
 
 
 ## Quality Analysis
-```{r echo=FALSE,out.width="80%"}
+```{r echo=FALSE, message=FALSE, warning=FALSE, out.width="80%"}
 print(params$quality_boxplot)
 ```
 
 
 ## Allele Frequency Analysis
-```{r echo=FALSE,out.width="80%"}
+```{r echo=FALSE, message=FALSE, warning=FALSE, out.width="80%"}
 print(params$frequency_ridges)
 ```
 
 
 ## Read Depth Analysis
-```{r echo=FALSE, out.width="80%"}
+```{r echo=FALSE, message=FALSE, warning=FALSE, out.width="80%"}
 print(params$read_depth)
 ```
 
@@ -93,7 +93,7 @@ print(params$read_depth)
 - **File 2: ** `r params$file2`
 - **File 3: ** `r params$file3`
 
-```{r echo=FALSE, out.width="80%"}
+```{r echo=FALSE, message=FALSE, warning=FALSE, out.width="80%"}
 if(params$venn_ready){
   grid.draw(params$venn_diagram)
 }else{

@@ -5,6 +5,7 @@ output: pdf_document
 params:
   file_name: NA
   selected_chromosome: NA
+  mutation_count: NA
   mutation_donut: NA
   mutation_distribution: NA
   snp_value: NA
@@ -39,6 +40,8 @@ params:
 -   **Selected chromosome:** `r params$selected_chromosome`
 
 ## Mutation Counts
+
+-   `r params$mutation_count`
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, out.width="80%"}
 print(params$mutation_donut)

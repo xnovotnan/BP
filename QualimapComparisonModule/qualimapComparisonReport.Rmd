@@ -11,9 +11,7 @@ params:
   mapped_bases_comparison: NA
   duplicated_reads_comparison: NA
   mapping_quality_comparison: NA
-  insert_size_comparison: NA
   insert_size_mean_comparison: NA
-  coverage_comparison: NA
   coverage_mean_comparison: NA
   gc_percentage_comparison: NA
   actg_content_comparison: NA
@@ -69,18 +67,10 @@ print(params$mapping_quality_comparison)
 
 ## Insert Size
 ```{r echo=FALSE, out.width="80%"}
-print(params$insert_size_comparison)
-```
-
-```{r echo=FALSE, out.width="80%"}
 print(params$insert_size_mean_comparison)
 ```
 
 ## Data Coverage
-```{r echo=FALSE, out.width="80%"}
-print(params$coverage_comparison)
-```
-
 ```{r echo=FALSE, out.width="80%"}
 print(params$coverage_mean_comparison)
 ```

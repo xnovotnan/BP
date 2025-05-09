@@ -67,42 +67,42 @@ vcfComparisonServer <- function(id) {
     mutation_heatmap_plot <- reactive({
       mutation_heatmap(filtered_data())
     })
-    output$mutation_heatmap <- renderPlot({
-      mutation_heatmap_plot()
+    output$mutation_heatmap <- renderPlotly({
+      ggplotly(mutation_heatmap_plot(), tooltip = "text")
     })
     mutation_types_distribution_plot <- reactive({
       mutation_types_distribution(filtered_data())
     })
-    output$mutation_types_distribution <- renderPlot({
-      mutation_types_distribution_plot()
+    output$mutation_types_distribution <- renderPlotly({
+      ggplotly(mutation_types_distribution_plot(), tooltip = "text")
     })
     mutation_subtypes_distribution_plot <- reactive({
       mutation_subtypes_distribution(filtered_data())
     })
-    output$mutation_subtypes_distribution <- renderPlot({
-      mutation_subtypes_distribution_plot()
+    output$mutation_subtypes_distribution <- renderPlotly({
+      ggplotly(mutation_subtypes_distribution_plot(), tooltip = "text")
     })
     
     # SNP Analysis
     snp_class_comparison_plot <- reactive({
       snp_class_comparison(filtered_data())
     })
-    output$snp_class_comparison <- renderPlot({
-      snp_class_comparison_plot()
+    output$snp_class_comparison <- renderPlotly({
+      ggplotly(snp_class_comparison_plot(), tooltip = "text")
     })
     transversion_transitions_plot <- reactive({
       transversion_transitions(filtered_data())
     })
-    output$transversion_transitions <- renderPlot({
-      transversion_transitions_plot()
+    output$transversion_transitions <- renderPlotly({
+      ggplotly(transversion_transitions_plot(), tooltip = "text")
     })
     
     # INDEL Analysis
     insertion_deletions_plot <- reactive({
       insertion_deletions(filtered_data())
     })
-    output$insertion_deletions <- renderPlot({
-      insertion_deletions_plot()
+    output$insertion_deletions <- renderPlotly({
+      ggplotly(insertion_deletions_plot(), tooltip = "text")
     })
     indel_len_boxplot_plot <- reactive({
       indel_len_boxplot(filtered_data())
@@ -226,11 +226,11 @@ vcfComparisonServer <- function(id) {
           )
         ),
         fluidRow(
-          column(6, plotOutput(ns("num_of_mutation"))),
-          column(6, plotOutput(ns("mutation_heatmap"))),
+          column(5, plotOutput(ns("num_of_mutation"))),
+          column(7, plotlyOutput(ns("mutation_heatmap"))),
           tags$hr(),
-          column(6, plotOutput(ns("mutation_types_distribution"))),
-          column(6, plotOutput(ns("mutation_subtypes_distribution")))
+          column(6, plotlyOutput(ns("mutation_types_distribution"))),
+          column(6, plotlyOutput(ns("mutation_subtypes_distribution")))
         ),
         tags$hr(),
         tags$h4(
@@ -242,8 +242,8 @@ vcfComparisonServer <- function(id) {
           )
         ),
         fluidRow(
-          column(6, plotOutput(ns("snp_class_comparison"))),
-          column(6, plotOutput(ns("transversion_transitions")))
+          column(6, plotlyOutput(ns("snp_class_comparison"))),
+          column(6, plotlyOutput(ns("transversion_transitions")))
         ),
         tags$hr(),
         tags$h4(
@@ -255,7 +255,7 @@ vcfComparisonServer <- function(id) {
           )
         ),
         fluidRow(
-          column(6, plotOutput(ns("insertion_deletions"))),
+          column(6, plotlyOutput(ns("insertion_deletions"))),
           column(6, plotOutput(ns("indel_len_boxplot")))
         ),
         tags$hr(),

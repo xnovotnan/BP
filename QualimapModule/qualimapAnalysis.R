@@ -52,7 +52,7 @@ process_qualimap_coverage <- function(qualimap_folder){
     geom_line(color = "blue", size = 1) + 
     geom_point(color = "blue", size = 2) + 
     labs(x = "Coverage (X)", y = "Percentage (%)", title = "Genome Fraction Coverage")+
-    theme_minimal() + 
+    theme_classic() + 
     theme(
       plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
       axis.text.x = element_text(size = 12),
@@ -76,7 +76,7 @@ process_qualimap_coverage_pc <- function(qualimap_folder) {
     geom_point(color = "salmon", size = 2) +
     labs(title = "Mean Coverage Across Chromosomes", x = element_blank(), y = "Mean coverage")+
     theme(axis.text.x = element_text(angle = 45, hjust = 1))+
-    theme_minimal() + 
+    theme_classic() + 
     theme(
       plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
       axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = 1, size = 12),
@@ -103,7 +103,7 @@ process_ACTG_content <- function(data){
   p <- ggplot(df, aes(x = reorder(Base, -Percentage), y = Percentage)) +
     geom_bar(stat = "identity", fill = "lightgreen", alpha=0.5) +
     labs(title = "Base Pair Counts", x = element_blank(), y = "Percentage (%)")+
-    theme_minimal() + 
+    theme_classic() + 
     theme(
       plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
       axis.text.x = element_text(size = 12),

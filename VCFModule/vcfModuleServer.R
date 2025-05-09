@@ -27,6 +27,9 @@ vcfModuleServer <- function(id) {
     })
     
     # Mutation counts
+    output$mutation_count <- renderText({
+      mutation_count(filtered_data())
+    })
     mutation_donut_plot <- reactive({
       mutation_donut(filtered_data(), input$analysis_level == "Subtypes")
     })
@@ -36,8 +39,8 @@ vcfModuleServer <- function(id) {
     mutation_distribution_plot <- reactive({
       mutation_distribution(filtered_data(), input$analysis_level == "Subtypes")
     })
-    output$mutation_distribution <- renderPlot({
-      mutation_distribution_plot()
+    output$mutation_distribution <- renderPlotly({
+      ggplotly(mutation_distribution_plot(), tooltip = "text")
     })
     
     # SNP Analysis
@@ -55,8 +58,8 @@ vcfModuleServer <- function(id) {
     snp_class_stacked_plot <- reactive({
       snp_class_stacked(filtered_data())
     })
-    output$snp_class_stacked <- renderPlot({
-      snp_class_stacked_plot()
+    output$snp_class_stacked <- renderPlotly({
+      ggplotly(snp_class_stacked_plot(), tooltip = "text")
     })
     snp_class_boxplot_plot <- reactive({
       snp_class_boxplot(filtered_data())
@@ -86,8 +89,8 @@ vcfModuleServer <- function(id) {
     indel_stacked_plot <- reactive({
       indel_stacked(filtered_data())
     })
-    output$indel_stacked <- renderPlot({
-      indel_stacked_plot()
+    output$indel_stacked <- renderPlotly({
+      ggplotly(indel_stacked_plot(), tooltip = "text")
     })
     output$indel_length_avg <- renderText({
       data <- processed_data()
@@ -103,7 +106,7 @@ vcfModuleServer <- function(id) {
       indel_length(filtered_data())
     })
     output$indel_length <- renderPlotly({
-      ggplotly(indel_length_plot())
+      ggplotly(indel_length_plot(), tooltip = "text")
     })
     indel_length_boxplot_plot <- reactive({
       indel_length_boxplot(filtered_data())
@@ -197,6 +200,7 @@ vcfModuleServer <- function(id) {
           params <- list(
             file_name = input$vcf_file[[1]],
             selected_chromosome = input$chrom_select,
+            mutation_count = mutation_count(filtered_data()),
             mutation_donut = mutation_donut_plot(),
             mutation_distribution = mutation_distribution_plot(),
             snp_value = snp_value(filtered_data()),
@@ -272,8 +276,9 @@ vcfModuleServer <- function(id) {
           )
         ),
         fluidRow(
-          column(6, plotOutput(ns("mutation_donut"))),
-          column(6, plotOutput(ns("mutation_distribution")))
+          column(12, verbatimTextOutput(ns("mutation_count"))),
+          column(4, plotOutput(ns("mutation_donut"))),
+          column(8, plotlyOutput(ns("mutation_distribution")))
         ),
         tags$hr(),
         tags$h4(
@@ -287,7 +292,7 @@ vcfModuleServer <- function(id) {
         fluidRow(
           column(12, verbatimTextOutput(ns("snp_value"))),
           column(4, plotOutput(ns("snp_types_donut"))),
-          column(8, plotOutput(ns("snp_class_stacked"))),
+          column(8, plotlyOutput(ns("snp_class_stacked"))),
           tags$hr(),
           column(7, plotOutput(ns("snp_class_boxplot"))),
           column(5, plotOutput(ns("snp_class_barplot")))
@@ -304,7 +309,7 @@ vcfModuleServer <- function(id) {
         fluidRow(
           column(12, verbatimTextOutput(ns("indel_values"))),
           column(4, plotOutput(ns("indel_types"))),
-          column(8, plotOutput(ns("indel_stacked"))),
+          column(8, plotlyOutput(ns("indel_stacked"))),
           column(6, verbatimTextOutput(ns("indel_length_avg"))),
           column(6, verbatimTextOutput(ns("indel_length_med"))),
           column(8, plotlyOutput(ns("indel_length"))),
